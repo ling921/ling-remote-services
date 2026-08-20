@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageOutputPath>.nuget</PackageOutputPath>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);IDE0290</NoWarn>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddToOutput</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.400" PrivateAssets="all" />
+    <PackageReference Include="PolySharp" Version="1.16.0" IncludeAssets="build; analyzers" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="[8.0.5,)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ling.RemoteServices.SourceGenerators\Ling.RemoteServices.SourceGenerators.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PolySharpIncludeGeneratedTypes>
+      System.Diagnostics.CodeAnalysis.StringSyntaxAttribute;
+    </PolySharpIncludeGeneratedTypes>
+  </PropertyGroup>
+
+  <Target Name="_AddToOutput">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)\Ling.RemoteServices.SourceGenerators.dll" PackagePath="analyzers/dotnet/cs" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <None Include="Build.props" Pack="true" PackagePath="buildTransitive" Visible="true" />
+  </ItemGroup>
+
+</Project>

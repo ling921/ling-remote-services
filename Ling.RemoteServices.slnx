@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/Ling.RemoteServices.SourceGenerators/Ling.RemoteServices.SourceGenerators.csproj" Id="94d592d7-289f-4b7f-b3ea-9a353fc9469a" />
+    <Project Path="src/Ling.RemoteServices/Ling.RemoteServices.csproj" Id="52643d74-9856-469f-a98e-a1dc1abcb364" />
+  </Folder>
+</Solution>
