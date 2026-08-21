@@ -80,6 +80,9 @@ public class MinimalApiGeneratorTests
             source.Contains(
                 "AuthorizationPolicyNames = new string?[] { \"ApiUser\" }",
                 StringComparison.Ordinal)
+            && source.Contains(
+                "AuthorizationRoleGroups = new string[] { \"Admin, Operator\" }",
+                StringComparison.Ordinal)
             && source.Contains("AllowAnonymous = true", StringComparison.Ordinal)
             && source.Contains("CorsPolicyName = \"Frontend\"", StringComparison.Ordinal)
             && source.Contains(
@@ -102,6 +105,48 @@ public class MinimalApiGeneratorTests
             "Action<global::Ling.RemoteServices.AspNetCore.RemoteServiceEndpointConventionRegistry>? configure",
             registration);
         Assert.Contains("configure?.Invoke(services)", registration);
+    }
+
+    [Fact]
+    public void Generator_preserves_role_groups_and_method_authorization_overrides_anonymous_service()
+    {
+        const string source = """
+            using Ling.RemoteServices.Attributes;
+            using System.Threading.Tasks;
+
+            namespace GeneratorFixtures;
+
+            [RemoteService("/api/roles")]
+            [RemoteAllowAnonymous]
+            [RemoteAuthorize(Roles = "Admin,Operator")]
+            public interface IRoleService
+            {
+                [Get]
+                [RemoteAuthorize(Roles = "Auditor")]
+                Task<string> GetAsync();
+            }
+            """;
+
+        var run = CSharpSourceGeneratorVerifier<MinimalApiGenerator>.Run(
+            source,
+            MetadataReference.CreateFromFile(
+                typeof(RemoteServiceEndpointConventionRegistry).Assembly.Location),
+            MetadataReference.CreateFromFile(
+                typeof(OpenApiRouteHandlerBuilderExtensions).Assembly.Location));
+        var generated = Assert.Single(
+                run.GeneratorResult.GeneratedSources,
+                generatedSource => generatedSource.HintName.EndsWith(
+                    ".Endpoints.g.cs",
+                    StringComparison.Ordinal))
+            .SourceText
+            .ToString();
+
+        AssertNoCompilerErrors(run.OutputCompilation);
+        Assert.Contains(
+            "AuthorizationRoleGroups = new string[] { \"Admin,Operator\", \"Auditor\" }",
+            generated);
+        Assert.DoesNotContain("AuthorizationPolicyNames =", generated);
+        Assert.DoesNotContain("AllowAnonymous = true", generated);
     }
 
     private static string GetSource(GeneratorRunResult result, string hintName)

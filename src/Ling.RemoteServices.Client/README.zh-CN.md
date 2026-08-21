@@ -6,10 +6,10 @@
 
 ## 安装
 
-该包尚未发布。首次发布后，请在 Blazor WebAssembly 或其他客户端项目中安装：
+请在 Blazor WebAssembly 或其他客户端项目中安装预览包：
 
 ```shell
-dotnet add package Ling.RemoteServices.Client
+dotnet add package Ling.RemoteServices.Client --prerelease
 ```
 
 该包会引用 `Ling.RemoteServices.Abstractions`，并携带客户端代理源代码生成器。

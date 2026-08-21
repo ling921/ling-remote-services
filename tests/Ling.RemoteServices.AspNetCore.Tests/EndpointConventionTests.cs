@@ -1,4 +1,5 @@
 using Ling.RemoteServices.AspNetCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
@@ -107,6 +108,7 @@ public class EndpointConventionTests
             new RemoteServiceEndpointPolicyMetadata
             {
                 AuthorizationPolicyNames = new string?[] { null, "Named" },
+                AuthorizationRoleGroups = new[] { "Admin,Operator", "Auditor" },
                 AllowAnonymous = true,
                 CorsPolicyName = "Api",
                 OutputCacheEnabled = true,
@@ -118,6 +120,17 @@ public class EndpointConventionTests
 
         Assert.Equal(typeof(ITestService), appliedServiceType);
         Assert.Equal(nameof(ITestService.GetAsync), appliedMethodName);
+
+        var mappedEndpoint = Assert.Single(
+            ((IEndpointRouteBuilder)application).DataSources
+                .SelectMany(dataSource => dataSource.Endpoints));
+        var roleRequirements = mappedEndpoint.Metadata
+            .GetOrderedMetadata<IAuthorizeData>()
+            .Where(data => data.Roles is not null)
+            .Select(data => data.Roles)
+            .ToArray();
+
+        Assert.Equal(new[] { "Admin,Operator", "Auditor" }, roleRequirements);
     }
 
     [Fact]

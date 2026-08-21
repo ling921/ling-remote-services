@@ -1,4 +1,5 @@
 @page "/weather/auto"
+@using Ling.RemoteServices.Exceptions
 @using Ling.RemoteServices.Examples.Shared
 @rendermode InteractiveAuto
 
@@ -8,13 +9,35 @@
 
 <h1>Weather</h1>
 
-<p>This component demonstrates showing data.</p>
+<p>
+    During server rendering this uses the local implementation. After switching to WebAssembly,
+    the same interface is backed by the generated HTTP client.
+</p>
 
-@if (forecasts == null)
+<div class="row g-3 mb-3">
+    <div class="col-auto">
+        <label class="form-label" for="start-date">Start date</label>
+        <input id="start-date" class="form-control" type="date" @bind="startDate" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label" for="days">Days</label>
+        <input id="days" class="form-control" type="number" min="1" max="14" @bind="days" />
+    </div>
+    <div class="col-auto align-self-end">
+        <button class="btn btn-primary" @onclick="LoadAsync" disabled="@loading">Refresh</button>
+    </div>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+
+@if (loading)
 {
     <p><em>Loading...</em></p>
 }
-else
+else if (forecasts is not null)
 {
     <table class="table">
         <thead>
@@ -41,9 +64,39 @@ else
 
 @code {
     private WeatherForecast[]? forecasts;
+    private DateOnly startDate = DateOnly.FromDateTime(DateTime.UtcNow);
+    private int days = 5;
+    private bool loading;
+    private string? error;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = await WeatherForecastService.GetAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        error = null;
+
+        try
+        {
+            forecasts = await WeatherForecastService.SearchAsync(
+                new WeatherForecastQuery
+                {
+                    StartDate = startDate,
+                    Days = days
+                },
+                Guid.NewGuid().ToString("N"));
+        }
+        catch (RemoteCallException exception)
+        {
+            forecasts = null;
+            error = exception.Problem?.Detail ?? exception.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
     }
 }

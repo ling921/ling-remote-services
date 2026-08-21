@@ -10,8 +10,17 @@ namespace Ling.RemoteServices.Examples.Shared;
 [RemoteEndpointPolicy("WeatherEndpoint")]
 public interface IWeatherForecastService
 {
-    /// <summary>Gets weather forecasts.</summary>
-    [Get(IsClientDefault = true), Post]
+    /// <summary>Searches weather forecasts.</summary>
+    [Get("forecasts", IsClientDefault = true), Post("forecasts/search")]
     [RemoteOutputCache("Weather")]
-    Task<WeatherForecast[]> GetAsync(CancellationToken cancellationToken = default);
+    Task<WeatherForecast[]> SearchAsync(
+        [Query] WeatherForecastQuery query,
+        [Header("X-Correlation-ID")] string? correlationId = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Gets a weather forecast for a specific date.</summary>
+    [Get("forecasts/{date}")]
+    Task<WeatherForecast> GetAsync(
+        [Path] DateOnly date,
+        CancellationToken cancellationToken = default);
 }

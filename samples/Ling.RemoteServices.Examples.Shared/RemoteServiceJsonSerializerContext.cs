@@ -6,6 +6,7 @@ namespace Ling.RemoteServices.Examples.Shared;
 /// Provides source-generated JSON metadata shared by the server and WebAssembly client.
 /// </summary>
 [JsonSerializable(typeof(WeatherForecast[]))]
+[JsonSerializable(typeof(WeatherForecast))]
 public sealed partial class RemoteServiceJsonSerializerContext : JsonSerializerContext
 {
 }

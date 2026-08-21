@@ -6,10 +6,10 @@
 
 ## 安装
 
-该包尚未发布。首次发布后，请在 ASP.NET Core 宿主中安装：
+请在 ASP.NET Core 宿主中安装预览包：
 
 ```shell
-dotnet add package Ling.RemoteServices.AspNetCore
+dotnet add package Ling.RemoteServices.AspNetCore --prerelease
 ```
 
 该包会引用 `Ling.RemoteServices.Abstractions`，并携带 Minimal API 源代码生成器。

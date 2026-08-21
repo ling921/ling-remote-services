@@ -6,13 +6,13 @@ English | [简体中文](README.zh-CN.md)
 
 ## Packages
 
-The packages have not been published to NuGet.org yet. The following package IDs are planned for the first release.
+Preview packages are published to NuGet.org under the following package IDs.
 
 | Package | Purpose | Status |
 | --- | --- | --- |
-| [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | Transport-independent contracts, attributes, models, exceptions, analyzer, and contract manifest generator. | Planned |
-| [`Ling.RemoteServices.Client`](src/Ling.RemoteServices.Client/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Client.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Client/) | Generated `HttpClient` proxies, URL formatting, serialization, and client error handling. | Planned |
-| [`Ling.RemoteServices.AspNetCore`](src/Ling.RemoteServices.AspNetCore/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.AspNetCore.svg)](https://www.nuget.org/packages/Ling.RemoteServices.AspNetCore/) | Generated Minimal API mappings, endpoint conventions, policies, and server error handling. | Planned |
+| [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | Transport-independent contracts, attributes, models, exceptions, analyzer, and contract manifest generator. | Preview |
+| [`Ling.RemoteServices.Client`](src/Ling.RemoteServices.Client/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Client.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Client/) | Generated `HttpClient` proxies, URL formatting, serialization, and client error handling. | Preview |
+| [`Ling.RemoteServices.AspNetCore`](src/Ling.RemoteServices.AspNetCore/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.AspNetCore.svg)](https://www.nuget.org/packages/Ling.RemoteServices.AspNetCore/) | Generated Minimal API mappings, endpoint conventions, policies, and server error handling. | Preview |
 
 ## Features
 
@@ -117,9 +117,9 @@ For installation, binding, client options, endpoint policies, and generated API 
 
 ## Planned enhancements
 
-- Expanded route and ASP.NET Core cross-version compatibility tests.
-- Complete file, OpenAPI, and XML documentation snapshots across supported target frameworks.
-- Optional integration with the ASP.NET API Versioning ecosystem.
+- Contract evolution and public API compatibility diagnostics for breaking route, binding, and type changes.
+- Broader end-to-end coverage for routing, files, OpenAPI, Native AOT, and supported .NET versions.
+- Richer HTTP contracts for success and error responses, headers, pagination, query DTOs, and streaming results.
 
 ## Contributing
 

@@ -6,13 +6,13 @@
 
 ## NuGet 包
 
-这些包尚未发布到 NuGet.org。以下是首次发布时计划使用的包 ID。
+预览包已使用以下包 ID 发布到 NuGet.org。
 
 | 包 | 用途 | 状态 |
 | --- | --- | --- |
-| [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | 与传输无关的契约、特性、模型、异常、分析器和契约清单生成器。 | 计划发布 |
-| [`Ling.RemoteServices.Client`](src/Ling.RemoteServices.Client/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Client.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Client/) | 生成的 `HttpClient` 代理、URL 格式化、序列化和客户端错误处理。 | 计划发布 |
-| [`Ling.RemoteServices.AspNetCore`](src/Ling.RemoteServices.AspNetCore/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.AspNetCore.svg)](https://www.nuget.org/packages/Ling.RemoteServices.AspNetCore/) | 生成的 Minimal API 映射、端点约定、策略和服务端错误处理。 | 计划发布 |
+| [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | 与传输无关的契约、特性、模型、异常、分析器和契约清单生成器。 | 预览版 |
+| [`Ling.RemoteServices.Client`](src/Ling.RemoteServices.Client/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Client.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Client/) | 生成的 `HttpClient` 代理、URL 格式化、序列化和客户端错误处理。 | 预览版 |
+| [`Ling.RemoteServices.AspNetCore`](src/Ling.RemoteServices.AspNetCore/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.AspNetCore.svg)](https://www.nuget.org/packages/Ling.RemoteServices.AspNetCore/) | 生成的 Minimal API 映射、端点约定、策略和服务端错误处理。 | 预览版 |
 
 ## 功能
 
@@ -117,9 +117,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 ## 后续计划
 
-- 扩充路由与 ASP.NET Core 跨版本兼容性测试。
-- 完善三个目标框架下的文件、OpenAPI 和 XML 文档快照。
-- 提供可选的 ASP.NET API Versioning 生态集成。
+- 提供契约演进和公开 API 兼容性诊断，识别路由、绑定与类型的破坏性变更。
+- 扩充路由、文件、OpenAPI、Native AOT 和受支持 .NET 版本的端到端测试。
+- 丰富成功与错误响应、Header、分页、Query DTO 和流式结果等 HTTP 契约。
 
 ## 参与贡献
 

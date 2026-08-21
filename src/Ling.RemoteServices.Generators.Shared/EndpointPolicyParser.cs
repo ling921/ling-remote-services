@@ -16,12 +16,17 @@ internal static class EndpointPolicyParser
             .Concat(methodPolicies.AuthorizationPolicyNames)
             .Distinct(StringComparer.Ordinal)
             .ToArray();
+        var authorizationRoleGroups = servicePolicies.AuthorizationRoleGroups
+            .Concat(methodPolicies.AuthorizationRoleGroups)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
         var allowAnonymous = methodPolicies.AllowAnonymous
             || (servicePolicies.AllowAnonymous
-                && methodPolicies.AuthorizationPolicyNames.Count == 0);
+                && !methodPolicies.HasAuthorization);
 
         return new EndpointPolicyModel(
             authorizationPolicies,
+            authorizationRoleGroups,
             allowAnonymous,
             methodPolicies.CorsPolicyName ?? servicePolicies.CorsPolicyName,
             methodPolicies.OutputCacheEnabled || servicePolicies.OutputCacheEnabled,
@@ -41,6 +46,7 @@ internal static class EndpointPolicyParser
         Action<Diagnostic>? reportDiagnostic)
     {
         var authorizationPolicies = new List<string?>();
+        var authorizationRoleGroups = new List<string>();
         var allowAnonymous = false;
         string? corsPolicyName = null;
         var outputCacheEnabled = false;
@@ -55,9 +61,24 @@ internal static class EndpointPolicyParser
             switch (attributeName)
             {
                 case ContractNames.AuthorizeAttribute:
-                    if (TryGetOptionalPolicyName(attribute, symbol, reportDiagnostic, out var authorizationPolicy))
+                    if (TryGetOptionalPolicyName(
+                            attribute,
+                            symbol,
+                            reportDiagnostic,
+                            out var authorizationPolicy))
                     {
-                        authorizationPolicies.Add(authorizationPolicy);
+                        var roles = GetOptionalNamedString(attribute, "Roles");
+                        if (roles is { } roleGroup
+                            && !string.IsNullOrWhiteSpace(roleGroup))
+                        {
+                            authorizationRoleGroups.Add(roleGroup);
+                        }
+
+                        if (authorizationPolicy is not null
+                            || string.IsNullOrWhiteSpace(roles))
+                        {
+                            authorizationPolicies.Add(authorizationPolicy);
+                        }
                     }
 
                     break;
@@ -94,6 +115,7 @@ internal static class EndpointPolicyParser
 
         return new EndpointPolicyModel(
             authorizationPolicies,
+            authorizationRoleGroups,
             allowAnonymous,
             corsPolicyName,
             outputCacheEnabled,
@@ -101,6 +123,19 @@ internal static class EndpointPolicyParser
             rateLimitPolicyName,
             requestTimeoutPolicyName,
             customPolicyNames);
+    }
+
+    private static string? GetOptionalNamedString(AttributeData attribute, string name)
+    {
+        foreach (var argument in attribute.NamedArguments)
+        {
+            if (argument.Key == name)
+            {
+                return argument.Value.Value as string;
+            }
+        }
+
+        return null;
     }
 
     private static bool TryGetOptionalPolicyName(

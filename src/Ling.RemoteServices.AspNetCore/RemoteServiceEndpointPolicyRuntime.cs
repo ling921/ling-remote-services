@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -42,6 +43,11 @@ public static class RemoteServiceEndpointPolicyRuntime
             {
                 endpoint.RequireAuthorization(policyName);
             }
+        }
+
+        foreach (var roles in metadata.AuthorizationRoleGroups)
+        {
+            endpoint.RequireAuthorization(new AuthorizeAttribute { Roles = roles });
         }
 
         if (metadata.AllowAnonymous)

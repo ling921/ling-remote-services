@@ -15,7 +15,7 @@ public static class GeneratorTestSources
         namespace GeneratorFixtures;
 
         [RemoteService("/api/first")]
-        [RemoteAuthorize("ApiUser")]
+        [RemoteAuthorize("ApiUser", Roles = "Admin, Operator")]
         [RemoteCors("Frontend")]
         [RemoteEndpointPolicy("ServicePolicy")]
         public interface IFirstService

@@ -19,6 +19,19 @@ public class EndpointPolicyAttributeTests
     public void Optional_policy_attributes_support_the_host_default_policy()
     {
         Assert.Null(new RemoteAuthorizeAttribute().PolicyName);
+        Assert.Null(new RemoteAuthorizeAttribute().Roles);
         Assert.Null(new RemoteOutputCacheAttribute().PolicyName);
+    }
+
+    [Fact]
+    public void Authorize_attribute_supports_comma_delimited_roles()
+    {
+        var attribute = new RemoteAuthorizeAttribute("ApiUser")
+        {
+            Roles = "Admin,Operator"
+        };
+
+        Assert.Equal("ApiUser", attribute.PolicyName);
+        Assert.Equal("Admin,Operator", attribute.Roles);
     }
 }
