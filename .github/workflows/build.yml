@@ -1,4 +1,4 @@
-name: Publish NuGet Package
+name: Publish NuGet Packages
 
 on:
   release:
@@ -11,7 +11,8 @@ env:
 jobs:
   publish:
     permissions:
-      id-token: write  # enable GitHub OIDC token issuance for this job
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -23,12 +24,11 @@ jobs:
         shell: bash
         run: bash scripts/pack.sh --configuration Release --runtime linux-x64 --output "${{ env.NuGetDirectory }}"
 
-      # Get a short-lived NuGet API key
       - name: NuGet login (OIDC → temp API key)
         uses: NuGet/login@v1
         id: login
         with:
-          user: ${{ vars.NUGET_USER }}
+          user: ling921
 
       - name: Publish to NuGet
         run: |

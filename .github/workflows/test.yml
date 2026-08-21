@@ -5,12 +5,15 @@ on:
   pull_request:
     branches:
       - master
-  push:
-    branches:
-      - master
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     steps:
