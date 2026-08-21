@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Ling.RemoteServices\Ling.RemoteServices.csproj" />
+    <!-- Project references do not transitively expose analyzer assets. NuGet consumers receive this analyzer from Ling.RemoteServices.Abstractions. -->
+    <ProjectReference Include="..\..\src\Ling.RemoteServices.Generators.Contract\Ling.RemoteServices.Generators.Contract.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

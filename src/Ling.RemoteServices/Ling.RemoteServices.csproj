@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <AssemblyName>Ling.RemoteServices.Abstractions</AssemblyName>
+    <PackageId>Ling.RemoteServices.Abstractions</PackageId>
+    <Title>Ling.RemoteServices Abstractions</Title>
+    <Description>Transport-independent contracts, attributes, models, exceptions, analyzer diagnostics, and contract manifest generation for Ling.RemoteServices.</Description>
+    <PackageTags>remote-services;contracts;rpc;roslyn;source-generator;analyzer</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+    <NoWarn>$(NoWarn);IDE0290</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ling.RemoteServices.Generators.Contract\Ling.RemoteServices.Generators.Contract.csproj" ReferenceOutputAssembly="false" />
+    <None Include="..\Ling.RemoteServices.Generators.Contract\bin\$(Configuration)\netstandard2.0\Ling.RemoteServices.Generators.Contract.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <!-- Package Content -->
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+    <None Include="README.zh-CN.md" Pack="true" PackagePath="" />
+    <None Include="..\..\assets\icon.png" Visible="false" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

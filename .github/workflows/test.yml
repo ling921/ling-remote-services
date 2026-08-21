@@ -1,0 +1,24 @@
+name: Run Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-env
+
+      - name: Build, test, and verify Native AOT
+        shell: bash
+        run: bash scripts/test.sh --configuration Release --runtime linux-x64

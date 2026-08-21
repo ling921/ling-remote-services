@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Ling.RemoteServices.Examples/Ling.RemoteServices.Examples.csproj" Id="ea2c7197-0501-4657-8239-5504e9724099" />
+    <Project Path="samples/Ling.RemoteServices.Examples.Client/Ling.RemoteServices.Examples.Client.csproj" Id="6fe5e660-913d-4b8c-a946-cee27997811d" />
+    <Project Path="samples/Ling.RemoteServices.Examples.Shared/Ling.RemoteServices.Examples.Shared.csproj" Id="4dc2ee82-8366-476a-af8f-a91c0c6c9eb1" />
+  </Folder>
+  <Folder Name="/Solution items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="README.zh-CN.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/Ling.RemoteServices.Generators.Contract/Ling.RemoteServices.Generators.Contract.csproj" Id="94d592d7-289f-4b7f-b3ea-9a353fc9469a" />
+    <Project Path="src/Ling.RemoteServices.Generators.Client/Ling.RemoteServices.Generators.Client.csproj" />
+    <Project Path="src/Ling.RemoteServices.Generators.AspNetCore/Ling.RemoteServices.Generators.AspNetCore.csproj" />
+    <Project Path="src/Ling.RemoteServices.Generators.Shared/Ling.RemoteServices.Generators.Shared.shproj" />
+    <Project Path="src/Ling.RemoteServices/Ling.RemoteServices.csproj" Id="52643d74-9856-469f-a98e-a1dc1abcb364" />
+    <Project Path="src/Ling.RemoteServices.Client/Ling.RemoteServices.Client.csproj" />
+    <Project Path="src/Ling.RemoteServices.AspNetCore/Ling.RemoteServices.AspNetCore.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ling.RemoteServices.Tests/Ling.RemoteServices.Tests.csproj" />
+    <Project Path="tests/Ling.RemoteServices.Client.Tests/Ling.RemoteServices.Client.Tests.csproj" />
+    <Project Path="tests/Ling.RemoteServices.AspNetCore.Tests/Ling.RemoteServices.AspNetCore.Tests.csproj" />
+    <Project Path="tests/Ling.RemoteServices.Generators.Testing/Ling.RemoteServices.Generators.Testing.csproj" />
+    <Project Path="tests/Ling.RemoteServices.Generators.Contract.Tests/Ling.RemoteServices.Generators.Contract.Tests.csproj" />
+    <Project Path="tests/Ling.RemoteServices.Generators.Client.Tests/Ling.RemoteServices.Generators.Client.Tests.csproj" />
+    <Project Path="tests/Ling.RemoteServices.Generators.AspNetCore.Tests/Ling.RemoteServices.Generators.AspNetCore.Tests.csproj" />
+    <Project Path="tests/Ling.RemoteServices.NativeAotSmoke/Ling.RemoteServices.NativeAotSmoke.csproj" />
+  </Folder>
+</Solution>

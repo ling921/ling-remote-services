@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <PackageId>Ling.RemoteServices.AspNetCore</PackageId>
+    <Title>Ling.RemoteServices ASP.NET Core</Title>
+    <Description>Generated ASP.NET Core Minimal API endpoints, endpoint conventions, policies, OpenAPI metadata, and server error handling for Ling.RemoteServices contracts.</Description>
+    <PackageTags>remote-services;rpc;aspnetcore;minimal-api;openapi;source-generator</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\Ling.RemoteServices\Ling.RemoteServices.csproj" />
+    <ProjectReference Include="..\Ling.RemoteServices.Generators.AspNetCore\Ling.RemoteServices.Generators.AspNetCore.csproj" ReferenceOutputAssembly="false" />
+    <None Include="..\Ling.RemoteServices.Generators.AspNetCore\bin\$(Configuration)\netstandard2.0\Ling.RemoteServices.Generators.AspNetCore.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+  <!-- Package Content -->
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+    <None Include="README.zh-CN.md" Pack="true" PackagePath="" />
+    <None Include="..\..\assets\icon.png" Visible="false" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>
