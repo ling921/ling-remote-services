@@ -1,0 +1,29 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject Condition="'$(MSBuildProjectName)' != 'Ling.RemoteServices.Generators.Testing' and '$(MSBuildProjectName)' != 'Ling.RemoteServices.NativeAotSmoke'">true</IsTestProject>
+    <IsTestProject Condition="'$(MSBuildProjectName)' == 'Ling.RemoteServices.Generators.Testing' or '$(MSBuildProjectName)' == 'Ling.RemoteServices.NativeAotSmoke'">false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Ling.RemoteServices.Generators.Testing' and '$(MSBuildProjectName)' != 'Ling.RemoteServices.NativeAotSmoke'">
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(MSBuildProjectName)' != 'Ling.RemoteServices.Generators.Testing' and '$(MSBuildProjectName)' != 'Ling.RemoteServices.NativeAotSmoke'">
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

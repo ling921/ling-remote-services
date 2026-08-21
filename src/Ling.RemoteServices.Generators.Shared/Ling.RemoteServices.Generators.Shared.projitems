@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>54f02934-f4f5-4e1f-b543-619692ec4ce5</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Ling.RemoteServices.Generators.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)BindKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ContractDiagnostics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ContractDiscovery.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ContractNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ContractParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EndpointPolicyModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EndpointPolicyParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GeneratorOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GeneratorUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HttpOperationModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MethodModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ParameterModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServiceModel.cs" />
+  </ItemGroup>
+</Project>
