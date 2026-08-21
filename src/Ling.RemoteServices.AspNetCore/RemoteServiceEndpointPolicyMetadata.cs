@@ -14,6 +14,12 @@ public sealed class RemoteServiceEndpointPolicyMetadata
     public IReadOnlyList<string?> AuthorizationPolicyNames { get; init; } = [];
 
     /// <summary>
+    /// Gets or initializes comma-delimited role groups. Roles within a group are alternatives,
+    /// while separate groups must all be satisfied.
+    /// </summary>
+    public IReadOnlyList<string> AuthorizationRoleGroups { get; init; } = [];
+
+    /// <summary>
     /// Gets or initializes a value indicating whether anonymous access is allowed.
     /// </summary>
     public bool AllowAnonymous { get; init; }

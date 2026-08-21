@@ -6,10 +6,10 @@
 
 ## Installation
 
-This package has not been published yet. After the first release, install it in the project that owns the shared service interfaces:
+Install the preview package in the project that owns the shared service interfaces:
 
 ```shell
-dotnet add package Ling.RemoteServices.Abstractions
+dotnet add package Ling.RemoteServices.Abstractions --prerelease
 ```
 
 ## Define a contract
@@ -71,7 +71,7 @@ The contract may select named authorization, CORS, output cache, rate limit, req
 
 ```csharp
 [RemoteService("/api/weather")]
-[RemoteAuthorize("ApiUser")]
+[RemoteAuthorize("ApiUser", Roles = "WeatherReader,Administrator")]
 [RemoteCors("Frontend")]
 public interface IWeatherService
 {
@@ -81,7 +81,8 @@ public interface IWeatherService
 }
 ```
 
-Policy definitions remain in the ASP.NET Core host.
+Policy definitions remain in the ASP.NET Core host. Roles in one comma-delimited list are
+alternatives; role groups declared by separate attributes must all be satisfied.
 
 ## Analyzer diagnostics
 

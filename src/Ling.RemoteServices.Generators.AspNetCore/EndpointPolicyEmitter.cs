@@ -32,6 +32,10 @@ internal static class EndpointPolicyEmitter
             .OpenBrace();
 
         EmitAuthorizationPolicies(source, policies.AuthorizationPolicyNames);
+        EmitStringArrayProperty(
+            source,
+            "AuthorizationRoleGroups",
+            policies.AuthorizationRoleGroups);
 
         if (policies.AllowAnonymous)
         {
@@ -58,6 +62,7 @@ internal static class EndpointPolicyEmitter
     private static bool HasPolicies(EndpointPolicyModel policies)
     {
         return policies.AuthorizationPolicyNames.Count > 0
+            || policies.AuthorizationRoleGroups.Count > 0
             || policies.AllowAnonymous
             || policies.CorsPolicyName is not null
             || policies.OutputCacheEnabled
@@ -103,13 +108,21 @@ internal static class EndpointPolicyEmitter
         CodeBuilder source,
         IReadOnlyList<string> policyNames)
     {
-        if (policyNames.Count == 0)
+        EmitStringArrayProperty(source, "CustomPolicyNames", policyNames);
+    }
+
+    private static void EmitStringArrayProperty(
+        CodeBuilder source,
+        string propertyName,
+        IReadOnlyList<string> values)
+    {
+        if (values.Count == 0)
         {
             return;
         }
 
-        source.Append("CustomPolicyNames = new string[] { ");
-        for (var index = 0; index < policyNames.Count; index++)
+        source.Append(propertyName).Append(" = new string[] { ");
+        for (var index = 0; index < values.Count; index++)
         {
             if (index > 0)
             {
@@ -118,7 +131,7 @@ internal static class EndpointPolicyEmitter
 
             source
                 .Append('"')
-                .Append(Escape(policyNames[index]))
+                .Append(Escape(values[index]))
                 .Append('"');
         }
 

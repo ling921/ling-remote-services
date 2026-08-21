@@ -6,10 +6,10 @@
 
 ## Installation
 
-This package has not been published yet. After the first release, install it in the Blazor WebAssembly or other client project:
+Install the preview package in the Blazor WebAssembly or other client project:
 
 ```shell
-dotnet add package Ling.RemoteServices.Client
+dotnet add package Ling.RemoteServices.Client --prerelease
 ```
 
 The package references `Ling.RemoteServices.Abstractions` and carries the client proxy source generator.

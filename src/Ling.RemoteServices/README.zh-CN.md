@@ -6,10 +6,10 @@
 
 ## 安装
 
-该包尚未发布。首次发布后，请在定义共享服务接口的项目中安装：
+请在定义共享服务接口的项目中安装预览包：
 
 ```shell
-dotnet add package Ling.RemoteServices.Abstractions
+dotnet add package Ling.RemoteServices.Abstractions --prerelease
 ```
 
 ## 定义契约
@@ -71,7 +71,7 @@ Task<Item[]> GetItemsAsync(string? query, CancellationToken cancellationToken = 
 
 ```csharp
 [RemoteService("/api/weather")]
-[RemoteAuthorize("ApiUser")]
+[RemoteAuthorize("ApiUser", Roles = "WeatherReader,Administrator")]
 [RemoteCors("Frontend")]
 public interface IWeatherService
 {
@@ -81,7 +81,8 @@ public interface IWeatherService
 }
 ```
 
-具体策略仍由 ASP.NET Core 宿主定义。
+具体策略仍由 ASP.NET Core 宿主定义。同一逗号分隔列表中的角色为“或”关系，
+不同特性声明的角色组之间为“且”关系。
 
 ## 分析器诊断
 

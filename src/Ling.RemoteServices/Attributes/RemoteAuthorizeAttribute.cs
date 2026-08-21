@@ -31,4 +31,9 @@ public sealed class RemoteAuthorizeAttribute : Attribute
     /// Gets the authorization policy name, or <see langword="null"/> to use the default policy.
     /// </summary>
     public string? PolicyName { get; }
+
+    /// <summary>
+    /// Gets or sets a comma-delimited list of roles that are allowed to access the endpoint.
+    /// </summary>
+    public string? Roles { get; set; }
 }
