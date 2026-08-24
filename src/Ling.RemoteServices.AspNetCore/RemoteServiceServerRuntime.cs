@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using Ling.RemoteServices.Exceptions;
@@ -106,6 +107,11 @@ public static class RemoteServiceServerRuntime
     {
         ArgumentNullException.ThrowIfNull(options);
 
+        if (options.TypeInfoResolver is null && JsonSerializer.IsReflectionEnabledByDefault)
+        {
+            options.TypeInfoResolver = CreateReflectionJsonTypeInfoResolver();
+        }
+
         try
         {
             if (options.GetTypeInfo(typeof(T)) is JsonTypeInfo<T> typeInfo)
@@ -146,6 +152,16 @@ public static class RemoteServiceServerRuntime
             + "with ConfigureHttpJsonOptions when using Native AOT.",
             innerException);
     }
+
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026",
+        Justification = "This fallback is reachable only when JSON reflection is enabled.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification = "This fallback is reachable only when JSON reflection is enabled.")]
+    private static DefaultJsonTypeInfoResolver CreateReflectionJsonTypeInfoResolver() => new();
 }
 
 /// <summary>
