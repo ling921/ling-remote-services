@@ -1,5 +1,6 @@
 using System.Collections;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net.Http.Json;
 using System.Text;
@@ -116,6 +117,11 @@ public static partial class RemoteServiceClientRuntime
     {
         ArgumentNullException.ThrowIfNull(options);
 
+        if (options.TypeInfoResolver is null && JsonSerializer.IsReflectionEnabledByDefault)
+        {
+            options.TypeInfoResolver = CreateReflectionJsonTypeInfoResolver();
+        }
+
         try
         {
             if (options.GetTypeInfo(typeof(T)) is JsonTypeInfo<T> typeInfo)
@@ -195,4 +201,14 @@ public static partial class RemoteServiceClientRuntime
             + "with RemoteServiceClientOptions.AddJsonSerializerContext when using Native AOT.",
             innerException);
     }
+
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026",
+        Justification = "This fallback is reachable only when JSON reflection is enabled.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification = "This fallback is reachable only when JSON reflection is enabled.")]
+    private static DefaultJsonTypeInfoResolver CreateReflectionJsonTypeInfoResolver() => new();
 }
