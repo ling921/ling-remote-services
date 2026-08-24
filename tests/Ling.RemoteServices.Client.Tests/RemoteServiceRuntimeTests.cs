@@ -5,6 +5,19 @@ namespace Ling.RemoteServices.Client.Tests;
 public class RemoteServiceRuntimeTests
 {
     [Fact]
+    public void GetJsonTypeInfo_uses_reflection_metadata_by_default_on_jit_hosts()
+    {
+        var options = new RemoteServiceClientOptions();
+
+        var typeInfo = RemoteServiceClientRuntime.GetJsonTypeInfo<ClientTestPayload>(
+            options.JsonSerializerOptions);
+
+        Assert.Equal(typeof(ClientTestPayload), typeInfo.Type);
+        Assert.IsType<System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver>(
+            options.JsonSerializerOptions.TypeInfoResolver);
+    }
+
+    [Fact]
     public void GetJsonTypeInfo_uses_registered_source_generated_context()
     {
         var options = new RemoteServiceClientOptions()
