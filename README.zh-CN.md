@@ -6,13 +6,13 @@
 
 ## NuGet 包
 
-预览包已使用以下包 ID 发布到 NuGet.org。
+稳定版包已使用以下包 ID 发布到 NuGet.org。
 
 | 包 | 用途 | 状态 |
 | --- | --- | --- |
-| [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | 与传输无关的契约、特性、模型、异常、分析器和契约清单生成器。 | 预览版 |
-| [`Ling.RemoteServices.Client`](src/Ling.RemoteServices.Client/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Client.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Client/) | 生成的 `HttpClient` 代理、URL 格式化、序列化和客户端错误处理。 | 预览版 |
-| [`Ling.RemoteServices.AspNetCore`](src/Ling.RemoteServices.AspNetCore/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.AspNetCore.svg)](https://www.nuget.org/packages/Ling.RemoteServices.AspNetCore/) | 生成的 Minimal API 映射、端点约定、策略和服务端错误处理。 | 预览版 |
+| [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | 与传输无关的契约、特性、模型、异常、分析器和契约清单生成器。 | 稳定版 |
+| [`Ling.RemoteServices.Client`](src/Ling.RemoteServices.Client/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Client.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Client/) | 生成的 `HttpClient` 代理、URL 格式化、序列化和客户端错误处理。 | 稳定版 |
+| [`Ling.RemoteServices.AspNetCore`](src/Ling.RemoteServices.AspNetCore/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.AspNetCore.svg)](https://www.nuget.org/packages/Ling.RemoteServices.AspNetCore/) | 生成的 Minimal API 映射、端点约定、策略和服务端错误处理。 | 稳定版 |
 
 ## 功能
 

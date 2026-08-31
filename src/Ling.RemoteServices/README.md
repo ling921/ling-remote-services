@@ -6,10 +6,10 @@
 
 ## Installation
 
-Install the preview package in the project that owns the shared service interfaces:
+Install the package in the project that owns the shared service interfaces:
 
 ```shell
-dotnet add package Ling.RemoteServices.Abstractions --prerelease
+dotnet add package Ling.RemoteServices.Abstractions
 ```
 
 ## Define a contract

@@ -6,10 +6,10 @@
 
 ## Installation
 
-Install the preview package in the ASP.NET Core host:
+Install the package in the ASP.NET Core host:
 
 ```shell
-dotnet add package Ling.RemoteServices.AspNetCore --prerelease
+dotnet add package Ling.RemoteServices.AspNetCore
 ```
 
 The package references `Ling.RemoteServices.Abstractions` and carries the Minimal API source generator.

@@ -6,10 +6,10 @@
 
 ## 安装
 
-请在定义共享服务接口的项目中安装预览包：
+请在定义共享服务接口的项目中安装此包：
 
 ```shell
-dotnet add package Ling.RemoteServices.Abstractions --prerelease
+dotnet add package Ling.RemoteServices.Abstractions
 ```
 
 ## 定义契约
