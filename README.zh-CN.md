@@ -8,7 +8,7 @@
 
 稳定版包已使用以下包 ID 发布到 NuGet.org。
 
-首个 2.0 预览版 [`2.0.0-preview.1`](https://github.com/ling921/ling-remote-services/releases/tag/v2.0.0-preview.1) 已发布。安装时请使用 `--prerelease`。
+首个 2.0 预览版 [`2.0.0-preview.2`](https://github.com/ling921/ling-remote-services/releases/tag/v2.0.0-preview.2) 已发布。安装时请使用 `--prerelease`。
 
 | 包 | 用途 | 状态 |
 | --- | --- | --- |

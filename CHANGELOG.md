@@ -1,6 +1,8 @@
 # Changelog
 
-## 2.0.0-preview.1
+## 2.0.0-preview.2
+
+This replaces the withdrawn `2.0.0-preview.1` GitHub release, whose tag incorrectly pointed to the 1.0.0 source commit. No 2.0 package was published for that release.
 
 - Add endpoint metadata attributes for response/request types and media types, OpenAPI tags and text, endpoint names, host constraints, route order, form limits, and other routing behavior. Attributes can target all operations on a contract or select an HTTP method.
 - Add typed convention builders for every mapped remote endpoint, an individual service, or one HTTP operation. Each scope accepts ASP.NET Core endpoint filters and common native endpoint conventions such as `Produces`, `Accepts`, request timeouts, and routing short-circuiting.
