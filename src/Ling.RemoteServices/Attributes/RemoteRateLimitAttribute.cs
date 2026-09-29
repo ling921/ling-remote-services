@@ -7,7 +7,7 @@ namespace Ling.RemoteServices.Attributes;
     AttributeTargets.Interface | AttributeTargets.Method,
     AllowMultiple = false,
     Inherited = true)]
-public sealed class RemoteRateLimitAttribute : Attribute
+public sealed class RemoteRateLimitAttribute : RemoteEndpointMetadataAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteRateLimitAttribute"/> class.

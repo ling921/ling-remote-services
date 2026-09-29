@@ -6,7 +6,8 @@ namespace Ling.RemoteServices.AspNetCore;
 /// <summary>
 /// Provides strongly typed access to all generated remote service endpoint builders.
 /// </summary>
-public sealed class RemoteServiceEndpointConventionRegistry : IEndpointConventionBuilder
+public sealed class RemoteServiceEndpointConventionRegistry
+    : RemoteServiceConventionBuilder<RemoteServiceEndpointConventionRegistry>
 {
     private readonly Dictionary<Type, object> services = [];
 
@@ -40,8 +41,9 @@ public sealed class RemoteServiceEndpointConventionRegistry : IEndpointConventio
     }
 
     /// <inheritdoc />
-    public void Add(Action<EndpointBuilder> convention)
+    public override void Add(Action<EndpointBuilder> convention)
     {
+        ArgumentNullException.ThrowIfNull(convention);
         foreach (var service in services.Values.Cast<IEndpointConventionBuilder>())
         {
             service.Add(convention);
@@ -49,11 +51,16 @@ public sealed class RemoteServiceEndpointConventionRegistry : IEndpointConventio
     }
 
     /// <inheritdoc />
-    public void Finally(Action<EndpointBuilder> finalConvention)
+    public override void Finally(Action<EndpointBuilder> finalConvention)
     {
+        ArgumentNullException.ThrowIfNull(finalConvention);
         foreach (var service in services.Values.Cast<IEndpointConventionBuilder>())
         {
             service.Finally(finalConvention);
         }
     }
+
+    /// <inheritdoc />
+    protected override IEnumerable<IEndpointConventionBuilder> GetEndpointBuilders() =>
+        services.Values.Cast<IEndpointConventionBuilder>();
 }

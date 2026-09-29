@@ -16,9 +16,9 @@ public abstract class RemoteMethodAttribute(string route) : Attribute
     public string Route { get; } = route;
 
     /// <summary>
-    /// Gets the expected successful HTTP status code, or <see langword="null"/> to use the default.
+    /// Gets the expected successful HTTP status code, or zero to use the default.
     /// </summary>
-    public int? SuccessStatusCode { get; init; }
+    public int SuccessStatusCode { get; init; }
 
     /// <summary>
     /// Gets the response media type, or <see langword="null"/> to infer it from the return type.

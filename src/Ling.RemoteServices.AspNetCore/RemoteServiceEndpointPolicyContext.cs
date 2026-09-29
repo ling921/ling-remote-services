@@ -5,7 +5,8 @@ namespace Ling.RemoteServices.AspNetCore;
 /// <summary>
 /// Provides a generated endpoint and its contract identity to a custom endpoint policy.
 /// </summary>
-public sealed class RemoteServiceEndpointPolicyContext : IEndpointConventionBuilder
+public sealed class RemoteServiceEndpointPolicyContext
+    : RemoteServiceConventionBuilder<RemoteServiceEndpointPolicyContext>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteServiceEndpointPolicyContext"/> class.
@@ -40,14 +41,20 @@ public sealed class RemoteServiceEndpointPolicyContext : IEndpointConventionBuil
     public IEndpointConventionBuilder Endpoint { get; }
 
     /// <inheritdoc />
-    public void Add(Action<EndpointBuilder> convention)
+    public override void Add(Action<EndpointBuilder> convention)
     {
         Endpoint.Add(convention);
     }
 
     /// <inheritdoc />
-    public void Finally(Action<EndpointBuilder> finalConvention)
+    public override void Finally(Action<EndpointBuilder> finalConvention)
     {
         Endpoint.Finally(finalConvention);
+    }
+
+    /// <inheritdoc />
+    protected override IEnumerable<IEndpointConventionBuilder> GetEndpointBuilders()
+    {
+        yield return Endpoint;
     }
 }

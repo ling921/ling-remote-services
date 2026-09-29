@@ -7,7 +7,7 @@ namespace Ling.RemoteServices.Attributes;
     AttributeTargets.Interface | AttributeTargets.Method,
     AllowMultiple = false,
     Inherited = true)]
-public sealed class RemoteOutputCacheAttribute : Attribute
+public sealed class RemoteOutputCacheAttribute : RemoteEndpointMetadataAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteOutputCacheAttribute"/> class

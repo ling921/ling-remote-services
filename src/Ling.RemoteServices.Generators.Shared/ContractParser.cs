@@ -35,15 +35,17 @@ internal static class ContractParser
         var declaredServiceRoute = serviceAttribute.ConstructorArguments.FirstOrDefault().Value as string
             ?? string.Empty;
         var routePrefix = NormalizeRoute(declaredServiceRoute);
+        var configurationSources = GetInterfaceHierarchy(service);
         var methods = new List<MethodModel>();
         var hasInvalidMethod = false;
-        var remoteMethods = service.GetMembers()
-            .OfType<IMethodSymbol>()
+        var methodGroups = configurationSources
+            .Append(service)
+            .SelectMany(type => type.GetMembers().OfType<IMethodSymbol>())
             .Where(symbol => symbol.MethodKind == MethodKind.Ordinary)
-            .ToArray();
-        var overloadedMethod = remoteMethods
             .GroupBy(method => method.Name, StringComparer.Ordinal)
-            .FirstOrDefault(group => group.Count() > 1);
+            .ToArray();
+        var overloadedMethod = methodGroups.FirstOrDefault(group =>
+            group.Select(GetMethodSignature).Distinct(StringComparer.Ordinal).Count() > 1);
 
         if (overloadedMethod is not null)
         {
@@ -55,9 +57,23 @@ internal static class ContractParser
             return null;
         }
 
-        foreach (var method in remoteMethods)
+        foreach (var methodGroup in methodGroups)
         {
-            var model = ParseMethod(method, routePrefix, reportDiagnostic);
+            var declarations = methodGroup.ToArray();
+            var method = declarations[declarations.Length - 1];
+            if (!ValidateInheritedOperationDeclarations(declarations, reportDiagnostic))
+            {
+                hasInvalidMethod = true;
+                continue;
+            }
+
+            var model = ParseMethod(
+                method,
+                declarations,
+                configurationSources,
+                service,
+                routePrefix,
+                reportDiagnostic);
             if (model is not null)
             {
                 methods.Add(model);
@@ -91,17 +107,36 @@ internal static class ContractParser
             return null;
         }
 
-        return new ServiceModel(service, routePrefix, methods);
+        var duplicateEndpointName = methods
+            .Where(method => method.EndpointName is not null)
+            .GroupBy(method => method.EndpointName!, StringComparer.Ordinal)
+            .FirstOrDefault(group => group.Count() > 1);
+        if (duplicateEndpointName is not null)
+        {
+            ReportInvalid(
+                reportDiagnostic,
+                duplicateEndpointName.Last().Symbol,
+                $"Remote endpoint name '{duplicateEndpointName.Key}' is used more than once in service '{service.Name}'.");
+            return null;
+        }
+
+        return new ServiceModel(service, routePrefix, methods, configurationSources);
     }
 
     private static MethodModel? ParseMethod(
         IMethodSymbol method,
+        IReadOnlyList<IMethodSymbol> declarations,
+        IReadOnlyList<INamedTypeSymbol> configurationSources,
+        INamedTypeSymbol service,
         string routePrefix,
         Action<Diagnostic>? reportDiagnostic)
     {
-        var verbAttributes = method.GetAttributes()
+        var verbDeclaration = declarations.LastOrDefault(declaration => declaration.GetAttributes()
+            .Any(attribute => GetVerb(attribute.AttributeClass?.Name) is not null));
+        var verbAttributes = verbDeclaration?.GetAttributes()
             .Where(attribute => GetVerb(attribute.AttributeClass?.Name) is not null)
-            .ToArray();
+            .ToArray()
+            ?? [];
 
         if (verbAttributes.Length == 0)
         {
@@ -154,7 +189,7 @@ internal static class ContractParser
         var operations = new List<HttpOperationModel>();
         foreach (var verbAttribute in verbAttributes)
         {
-            var operation = ParseOperation(method, routePrefix, verbAttribute, reportDiagnostic);
+            var operation = ParseOperation(method, declarations, routePrefix, verbAttribute, reportDiagnostic);
             if (operation is null)
             {
                 return null;
@@ -167,20 +202,58 @@ internal static class ContractParser
             ? operations[0]
             : operations.Single(operation => operation.IsClientDefault);
 
+        var declaredMetadata = EndpointMetadataParser.Parse(
+            configurationSources.Cast<ISymbol>().Append(service).Concat(declarations),
+            reportDiagnostic);
+        var endpointName = declaredMetadata
+            .LastOrDefault(item => item.Kind == EndpointMetadataKind.EndpointName)
+            ?.Text;
+        if (endpointName is not null && operations.Count != 1)
+        {
+            ReportInvalid(
+                reportDiagnostic,
+                method,
+                $"Remote endpoint name on '{method.Name}' requires exactly one HTTP operation.");
+            return null;
+        }
+
+        if (endpointName is not null && string.IsNullOrWhiteSpace(endpointName))
+        {
+            ReportInvalid(reportDiagnostic, method, $"Remote endpoint name on '{method.Name}' cannot be empty.");
+            return null;
+        }
+
+        for (var index = 0; index < operations.Count; index++)
+        {
+            var operation = operations[index];
+            var httpMethod = GetRemoteHttpMethodValue(operation.Verb);
+            var operationMetadata = declaredMetadata
+                .Where(item => !item.SelectsHttpMethod || item.HttpMethod == httpMethod)
+                .ToArray();
+            operations[index] = operation with
+            {
+                EndpointMetadata = operationMetadata,
+                EndpointPolicies = EndpointPolicyParser.ParseEffective(
+                    configurationSources.Cast<ISymbol>().Append(service).ToArray(),
+                    declarations,
+                    httpMethod,
+                    reportDiagnostic)
+            };
+        }
+
         return new MethodModel(
             method,
             resultType,
-            GetSummary(method),
-            EndpointPolicyParser.ParseEffective(
-                method.ContainingType,
-                method,
-                reportDiagnostic),
+            declarations.Select(GetSummary).LastOrDefault(summary => summary is not null),
             operations,
-            clientDefault);
+            clientDefault,
+            declarations,
+            endpointName);
     }
 
     private static HttpOperationModel? ParseOperation(
         IMethodSymbol method,
+        IReadOnlyList<IMethodSymbol> declarations,
         string routePrefix,
         AttributeData verbAttribute,
         Action<Diagnostic>? reportDiagnostic)
@@ -202,7 +275,11 @@ internal static class ContractParser
 
         var routeNames = GetRouteNames(fullRoute);
         var parameters = method.Parameters
-            .Select(parameter => ParseParameter(parameter, verb, routeNames))
+            .Select((parameter, index) => ParseParameter(
+                parameter,
+                FindInheritedBindingAttribute(declarations, index),
+                verb,
+                routeNames))
             .ToList();
 
         var hasInvalidBody = parameters.Count(parameter => parameter.Kind == BindKind.Body) > 1
@@ -223,6 +300,16 @@ internal static class ContractParser
             .FirstOrDefault(argument => argument.Key == "ResponseContentType")
             .Value.Value as string;
 
+        if (verbAttribute.NamedArguments.Any(argument => argument.Key == "SuccessStatusCode")
+            && successStatus is < 100 or > 299)
+        {
+            ReportInvalid(
+                reportDiagnostic,
+                method,
+                $"Success status code on '{method.Name}' must be from 100 through 299.");
+            return null;
+        }
+
         return new HttpOperationModel(
             verb,
             relativeRoute,
@@ -230,7 +317,93 @@ internal static class ContractParser
             parameters,
             successStatus,
             responseContentType,
-            IsClientDefault(verbAttribute));
+            IsClientDefault(verbAttribute),
+            Array.Empty<EndpointMetadataModel>(),
+            EndpointPolicyModel.Empty);
+    }
+
+    private static List<INamedTypeSymbol> GetInterfaceHierarchy(INamedTypeSymbol service)
+    {
+        var result = new List<INamedTypeSymbol>();
+        var visited = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        void Visit(INamedTypeSymbol current)
+        {
+            if (!visited.Add(current))
+            {
+                return;
+            }
+
+            foreach (var baseInterface in current.Interfaces.OrderBy(type => type.ToDisplayString(), StringComparer.Ordinal))
+            {
+                Visit(baseInterface);
+            }
+
+            if (!SymbolEqualityComparer.Default.Equals(current, service))
+            {
+                result.Add(current);
+            }
+        }
+
+        Visit(service);
+        return result;
+    }
+
+    private static int GetRemoteHttpMethodValue(string verb) => verb switch
+    {
+        "GET" => 0,
+        "POST" => 1,
+        "PUT" => 2,
+        "PATCH" => 3,
+        "DELETE" => 4,
+        _ => throw new InvalidOperationException($"Unsupported HTTP method '{verb}'.")
+    };
+
+    private static string GetMethodSignature(IMethodSymbol method) =>
+        method.Name + "(" + string.Join(",", method.Parameters.Select(parameter =>
+            parameter.RefKind + ":" + parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))
+        + ")->" + method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+    private static bool ValidateInheritedOperationDeclarations(
+        IReadOnlyList<IMethodSymbol> declarations,
+        Action<Diagnostic>? reportDiagnostic)
+    {
+        var declarationsWithVerbs = declarations
+            .Where(declaration => declaration.GetAttributes().Any(attribute => GetVerb(attribute.AttributeClass?.Name) is not null))
+            .ToArray();
+        if (declarationsWithVerbs.Length < 2)
+        {
+            return true;
+        }
+
+        var mostSpecificDeclarations = declarationsWithVerbs
+            .Where(declaration => !declarationsWithVerbs.Any(other =>
+                !SymbolEqualityComparer.Default.Equals(declaration.ContainingType, other.ContainingType)
+                && other.ContainingType.AllInterfaces.Any(baseInterface =>
+                    SymbolEqualityComparer.Default.Equals(baseInterface, declaration.ContainingType))))
+            .ToArray();
+        if (mostSpecificDeclarations.Length < 2)
+        {
+            return true;
+        }
+
+        var signatures = mostSpecificDeclarations
+            .Select(declaration => string.Join(";", declaration.GetAttributes()
+                .Where(attribute => GetVerb(attribute.AttributeClass?.Name) is not null)
+                .Select(attribute => attribute.AttributeClass!.ToDisplayString()
+                    + "(" + string.Join(",", attribute.ConstructorArguments.Select(argument => argument.Value?.ToString())) + ")"
+                    + "{" + string.Join(",", attribute.NamedArguments.Select(argument => argument.Key + "=" + argument.Value.Value)) + "}")))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        if (signatures.Length == 1)
+        {
+            return true;
+        }
+
+        ReportInvalid(
+            reportDiagnostic,
+            mostSpecificDeclarations[0],
+            $"Inherited declarations of remote method '{mostSpecificDeclarations[0].Name}' define conflicting HTTP operations. Declare the method on the service interface to resolve the conflict.");
+        return false;
     }
 
     private static bool IsClientDefault(AttributeData attribute)
@@ -242,6 +415,7 @@ internal static class ContractParser
 
     private static ParameterModel ParseParameter(
         IParameterSymbol parameter,
+        AttributeData? inheritedBinding,
         string verb,
         HashSet<string> routeNames)
     {
@@ -252,7 +426,7 @@ internal static class ContractParser
 
         var bindingAttribute = parameter.GetAttributes().FirstOrDefault(attribute =>
             attribute.AttributeClass?.ContainingNamespace.ToDisplayString()
-                == "Ling.RemoteServices.Attributes");
+                == "Ling.RemoteServices.Attributes") ?? inheritedBinding;
         var name = GetBindingName(bindingAttribute) ?? parameter.Name;
 
         var kind = bindingAttribute?.AttributeClass?.Name switch
@@ -268,6 +442,30 @@ internal static class ContractParser
         };
 
         return new ParameterModel(parameter, kind, name);
+    }
+
+    private static AttributeData? FindInheritedBindingAttribute(
+        IReadOnlyList<IMethodSymbol> declarations,
+        int parameterIndex)
+    {
+        for (var declarationIndex = declarations.Count - 1; declarationIndex >= 0; declarationIndex--)
+        {
+            var declaration = declarations[declarationIndex];
+            if (declaration.Parameters.Length <= parameterIndex)
+            {
+                continue;
+            }
+
+            var attribute = declaration.Parameters[parameterIndex].GetAttributes().FirstOrDefault(candidate =>
+                candidate.AttributeClass?.ContainingNamespace.ToDisplayString()
+                    == "Ling.RemoteServices.Attributes");
+            if (attribute is not null)
+            {
+                return attribute;
+            }
+        }
+
+        return null;
     }
 
     private static string? GetBindingName(AttributeData? attribute)

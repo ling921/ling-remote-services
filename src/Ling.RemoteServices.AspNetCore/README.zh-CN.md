@@ -98,6 +98,24 @@ app.MapRemoteServices(services =>
 
 当一个契约方法公开多个 Method 时，可以使用 `Operation(methodName, RemoteHttpMethod)` 只配置其中一个 HTTP 操作。
 
+注册表及每个服务、方法和单个 HTTP 操作的 builder 都支持标准 endpoint filter：
+
+```csharp
+app.MapRemoteServices(services =>
+{
+    services.AddEndpointFilter<EndpointValidationFilter>();
+    services.For<IAdminApiService>()
+        .AddEndpointFilter<AdminAuditFilter>();
+    services.For<IAdminApiService>()
+        .Operation(nameof(IAdminApiService.DeleteAsync), RemoteHttpMethod.Delete)
+        .AddEndpointFilter<DeleteConfirmationFilter>();
+});
+```
+
+注册表配置会应用到所有已映射服务；服务、方法和单操作 builder 依次缩小作用范围。它们还提供类型化 `Produces`、`ProducesProblem`、`ProducesValidationProblem`、`Accepts`、请求超时和路由短路方法。Builder 实现 `IEndpointConventionBuilder`，因此也可直接传给其他接受该接口的 ASP.NET Core endpoint convention 扩展；服务的原生 `RouteGroupBuilder` 仍可通过 `.Group` 访问。`RemoteShortCircuit` 特性可为所有操作或指定 HTTP Method 配置路由短路。
+
+路由短路会从 Routing 阶段直接执行 endpoint，并跳过后续 Middleware。ASP.NET Core 不允许对带有授权、CORS 或必需防伪 metadata 的端点使用该功能，请只用于不依赖这些 Middleware 的端点。
+
 ## OpenAPI
 
 生成端点会附加原生 Minimal API metadata，例如 operation name、summary、接受的内容类型、响应类型和参数绑定来源。请配置目标 ASP.NET Core 版本提供的 OpenAPI 组件：

@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Microsoft.AspNetCore.Builder;
 
 namespace Ling.RemoteServices.AspNetCore;
@@ -6,8 +5,8 @@ namespace Ling.RemoteServices.AspNetCore;
 /// <summary>
 /// Provides access to every generated HTTP operation for one remote contract method.
 /// </summary>
-[EditorBrowsable(EditorBrowsableState.Never)]
-public sealed class RemoteServiceMethodConventionBuilder : IEndpointConventionBuilder
+public sealed class RemoteServiceMethodConventionBuilder
+    : RemoteServiceConventionBuilder<RemoteServiceMethodConventionBuilder>
 {
     private readonly IReadOnlyDictionary<RemoteHttpMethod, IEndpointConventionBuilder> operations;
 
@@ -27,17 +26,17 @@ public sealed class RemoteServiceMethodConventionBuilder : IEndpointConventionBu
     /// <param name="method">The HTTP method to retrieve.</param>
     /// <returns>The endpoint convention builder for the requested HTTP operation.</returns>
     /// <exception cref="KeyNotFoundException">The contract method does not expose the requested HTTP method.</exception>
-    public IEndpointConventionBuilder HttpMethod(RemoteHttpMethod method)
+    public RemoteServiceOperationConventionBuilder HttpMethod(RemoteHttpMethod method)
     {
         return operations.TryGetValue(method, out var operation)
-            ? operation
+            ? new RemoteServiceOperationConventionBuilder(method, operation)
             : throw new KeyNotFoundException(
                 $"The remote contract method does not expose HTTP {method}. Available HTTP methods: "
                 + string.Join(", ", operations.Keys.OrderBy(value => value)));
     }
 
     /// <inheritdoc />
-    public void Add(Action<EndpointBuilder> convention)
+    public override void Add(Action<EndpointBuilder> convention)
     {
         ArgumentNullException.ThrowIfNull(convention);
 
@@ -48,7 +47,7 @@ public sealed class RemoteServiceMethodConventionBuilder : IEndpointConventionBu
     }
 
     /// <inheritdoc />
-    public void Finally(Action<EndpointBuilder> finalConvention)
+    public override void Finally(Action<EndpointBuilder> finalConvention)
     {
         ArgumentNullException.ThrowIfNull(finalConvention);
 
@@ -57,4 +56,7 @@ public sealed class RemoteServiceMethodConventionBuilder : IEndpointConventionBu
             operation.Finally(finalConvention);
         }
     }
+
+    /// <inheritdoc />
+    protected override IEnumerable<IEndpointConventionBuilder> GetEndpointBuilders() => operations.Values;
 }

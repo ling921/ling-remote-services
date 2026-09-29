@@ -52,6 +52,36 @@ public class RemoteServiceContractAnalyzerTests
         Assert.Contains("at least one", diagnostic.GetMessage());
     }
 
+    [Fact]
+    public async Task LRS003_reports_conflicting_http_operations_from_unrelated_base_interfaces()
+    {
+        const string source = """
+            using Ling.RemoteServices.Attributes;
+            using System.Threading.Tasks;
+
+            public interface IFirstBaseService
+            {
+                [Get("first")]
+                Task<string> FindAsync();
+            }
+
+            public interface ISecondBaseService
+            {
+                [Post("second")]
+                Task<string> FindAsync();
+            }
+
+            [RemoteService("/api/conflict")]
+            public interface IConflictingService : IFirstBaseService, ISecondBaseService
+            {
+            }
+            """;
+
+        var diagnostic = await GetSingleDiagnosticAsync(source, "LRS003");
+
+        Assert.Contains("conflicting HTTP operations", diagnostic.GetMessage());
+    }
+
     [Theory]
     [MemberData(nameof(InvalidContractSources))]
     public async Task LRS003_reports_unsupported_contracts(

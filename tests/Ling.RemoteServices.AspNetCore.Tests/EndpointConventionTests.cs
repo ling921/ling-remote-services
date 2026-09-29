@@ -1,6 +1,8 @@
 using Ling.RemoteServices.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +38,7 @@ public class EndpointConventionTests
         Assert.Same(method, service.Operation(nameof(ITestService.GetAsync)));
         Assert.Same(
             postOperation,
-            service.Operation(nameof(ITestService.GetAsync), RemoteHttpMethod.Post));
+            service.Operation(nameof(ITestService.GetAsync), RemoteHttpMethod.Post).Endpoint);
 
         registry.RequireAuthorization();
         service.RequireCors("Api");
@@ -56,6 +58,54 @@ public class EndpointConventionTests
         Assert.True(globalConventionApplied);
         Assert.True(serviceConventionApplied);
         Assert.True(operationConventionApplied);
+    }
+
+    [Fact]
+    public void Typed_builders_apply_native_metadata_and_filters_at_each_scope()
+    {
+        var applicationBuilder = WebApplication.CreateBuilder();
+        var application = applicationBuilder.Build();
+        var group = application.MapGroup("/api/test");
+        var getOperation = group.MapGet("/get", () => "ok");
+        var postOperation = group.MapPost("/get", () => "ok");
+        var method = new RemoteServiceMethodConventionBuilder(
+            new Dictionary<RemoteHttpMethod, IEndpointConventionBuilder>
+            {
+                [RemoteHttpMethod.Get] = getOperation,
+                [RemoteHttpMethod.Post] = postOperation
+            });
+        var service = new RemoteServiceEndpointConventionBuilder<ITestService>(
+            group,
+            new Dictionary<string, RemoteServiceMethodConventionBuilder>(StringComparer.Ordinal)
+            {
+                [nameof(ITestService.GetAsync)] = method
+            });
+        var registry = new RemoteServiceEndpointConventionRegistry();
+        registry.AddService(service);
+
+        registry.AddEndpointFilter(new PassThroughEndpointFilter());
+        registry.AddEndpointFilter<PassThroughEndpointFilter>();
+        registry.Produces<string>(202, "application/vnd.remote+json");
+        service.AddEndpointFilter((context, next) => next(context));
+        service.Operation(nameof(ITestService.GetAsync), RemoteHttpMethod.Get)
+            .Accepts<string>("application/vnd.remote+json")
+            .Produces<string>(201)
+            .AddEndpointFilterFactory((_, next) => next)
+            .ShortCircuit(418);
+
+        var endpoints = ((IEndpointRouteBuilder)application).DataSources
+            .SelectMany(dataSource => dataSource.Endpoints)
+            .ToArray();
+        var getEndpoint = Assert.Single(endpoints, endpoint => endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Contains("GET") == true);
+        var postEndpoint = Assert.Single(endpoints, endpoint => endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Contains("POST") == true);
+
+        Assert.Contains(getEndpoint.Metadata.GetOrderedMetadata<ProducesResponseTypeMetadata>(), item => item.StatusCode == 201);
+        Assert.Contains(
+            getEndpoint.Metadata,
+            metadata => metadata.GetType().Name.Contains("ShortCircuit", StringComparison.Ordinal));
+        Assert.Contains(getEndpoint.Metadata.GetOrderedMetadata<ProducesResponseTypeMetadata>(), item => item.StatusCode == 202);
+        Assert.Contains(postEndpoint.Metadata.GetOrderedMetadata<ProducesResponseTypeMetadata>(), item => item.StatusCode == 202);
+        Assert.Contains(getEndpoint.Metadata.GetOrderedMetadata<IAcceptsMetadata>(), item => item.ContentTypes.Contains("application/vnd.remote+json"));
     }
 
     [Fact]
@@ -158,5 +208,16 @@ public class EndpointConventionTests
     private interface ITestService
     {
         Task<string> GetAsync();
+    }
+
+    private sealed class PassThroughEndpointFilter : IEndpointFilter
+    {
+        public PassThroughEndpointFilter()
+        {
+        }
+
+        public ValueTask<object?> InvokeAsync(
+            EndpointFilterInvocationContext context,
+            EndpointFilterDelegate next) => next(context);
     }
 }

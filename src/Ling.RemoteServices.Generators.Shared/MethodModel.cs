@@ -6,6 +6,7 @@ internal sealed record MethodModel(
     IMethodSymbol Symbol,
     ITypeSymbol? Result,
     string? Summary,
-    EndpointPolicyModel EndpointPolicies,
     List<HttpOperationModel> Operations,
-    HttpOperationModel ClientDefaultOperation);
+    HttpOperationModel ClientDefaultOperation,
+    IReadOnlyList<IMethodSymbol> Declarations,
+    string? EndpointName);

@@ -7,7 +7,7 @@ namespace Ling.RemoteServices.Attributes;
     AttributeTargets.Interface | AttributeTargets.Method,
     AllowMultiple = false,
     Inherited = true)]
-public sealed class RemoteCorsAttribute : Attribute
+public sealed class RemoteCorsAttribute : RemoteEndpointMetadataAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteCorsAttribute"/> class.

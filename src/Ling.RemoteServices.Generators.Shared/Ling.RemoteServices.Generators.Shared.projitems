@@ -17,6 +17,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ContractParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EndpointPolicyModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EndpointPolicyParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EndpointMetadataModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EndpointMetadataParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GeneratorOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GeneratorUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HttpOperationModel.cs" />

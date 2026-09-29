@@ -6,7 +6,11 @@ namespace Ling.RemoteServices.Generators;
 
 internal static class ServerEmitter
 {
-    public static SourceText EmitService(ServiceModel service, string rootNamespace)
+    public static SourceText EmitService(
+        ServiceModel service,
+        string rootNamespace,
+        bool supportsDotNet10,
+        Action<Diagnostic> reportDiagnostic)
     {
         var source = CreateSource(rootNamespace);
         var mapperName = GetGeneratedTypeName(service.Symbol, "EndpointMapper");
@@ -42,7 +46,15 @@ internal static class ServerEmitter
 
             foreach (var operation in method.Operations)
             {
-                EmitMap(source, service, method, operation, operationIndex, methodIndex);
+                EmitMap(
+                    source,
+                    service,
+                    method,
+                    operation,
+                    operationIndex,
+                    methodIndex,
+                    supportsDotNet10,
+                    reportDiagnostic);
                 operationIndex++;
             }
 
@@ -135,7 +147,9 @@ internal static class ServerEmitter
         MethodModel method,
         HttpOperationModel operation,
         int operationIndex,
-        int methodIndex)
+        int methodIndex,
+        bool supportsDotNet10,
+        Action<Diagnostic> reportDiagnostic)
     {
         var httpContextParameterName = GetUniqueInfrastructureParameterName(
             operation,
@@ -152,7 +166,7 @@ internal static class ServerEmitter
 
         source
             .AppendLine()
-            .Append("global::Microsoft.AspNetCore.Builder.IEndpointConventionBuilder operation")
+            .Append("global::Microsoft.AspNetCore.Builder.IEndpointConventionBuilder mappedEndpoint")
             .Append(operationIndex)
             .AppendLine(";")
             .AppendLine("if (global::System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported)")
@@ -166,7 +180,7 @@ internal static class ServerEmitter
             .CloseBrace()
             .AppendLine("else")
             .OpenBrace()
-            .Append("operation")
+            .Append("mappedEndpoint")
             .Append(operationIndex)
             .AppendLine(" = global::Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapMethods(")
             .IncreaseIndentLevel()
@@ -240,6 +254,13 @@ internal static class ServerEmitter
             .CloseBraceInline("));")
             .DecreaseIndentLevel()
             .CloseBrace()
+            .Append("var operation")
+            .Append(operationIndex)
+            .Append(" = new global::Ling.RemoteServices.AspNetCore.RemoteServiceOperationConventionBuilder(global::Ling.RemoteServices.RemoteHttpMethod.")
+            .Append(GetRemoteHttpMethodName(operation.Verb))
+            .Append(", mappedEndpoint")
+            .Append(operationIndex)
+            .AppendLine(");")
             .Append("operation")
             .Append(operationIndex)
             .AppendLine()
@@ -258,12 +279,20 @@ internal static class ServerEmitter
 
         EmitProducesMetadata(source, method, operation);
         EmitAcceptsMetadata(source, operation);
+
         source
             .AppendLine(";")
             .DecreaseIndentLevel();
 
         var operationVariable = "operation" + operationIndex;
-        EndpointPolicyEmitter.EmitApply(source, service, method, operationVariable);
+        EndpointMetadataEmitter.EmitApply(
+            source,
+            method,
+            operation,
+            operationVariable,
+            supportsDotNet10,
+            reportDiagnostic);
+        EndpointPolicyEmitter.EmitApply(source, service, method, operation, operationVariable);
 
         source
             .Append("methodOperations")
@@ -280,7 +309,7 @@ internal static class ServerEmitter
         int operationIndex)
     {
         source
-            .Append("operation")
+            .Append("mappedEndpoint")
             .Append(operationIndex)
             .Append(" = MapDynamicOperation")
             .Append(operationIndex)
@@ -856,6 +885,14 @@ internal static class ServerEmitter
         MethodModel method,
         HttpOperationModel operation)
     {
+        var statusCode = method.Result is null
+            ? operation.SuccessStatus ?? 204
+            : operation.SuccessStatus ?? 200;
+        if (EndpointMetadataEmitter.HasExplicitProducesStatus(operation, statusCode))
+        {
+            return;
+        }
+
         if (method.Result is null)
         {
             source
@@ -879,8 +916,9 @@ internal static class ServerEmitter
         CodeBuilder source,
         HttpOperationModel operation)
     {
+        var hasExplicitAccepts = EndpointMetadataEmitter.HasExplicitAccepts(operation);
         var body = operation.Parameters.FirstOrDefault(parameter => parameter.Kind == BindKind.Body);
-        if (body is not null)
+        if (body is not null && !hasExplicitAccepts)
         {
             source
                 .Append(".WithMetadata(new global::Microsoft.AspNetCore.Http.Metadata.AcceptsMetadata(")
@@ -893,18 +931,27 @@ internal static class ServerEmitter
 
         if (operation.Parameters.Any(parameter => parameter.Kind == BindKind.Form))
         {
-            source
-                .Append(".WithMetadata(new global::Microsoft.AspNetCore.Http.Metadata.AcceptsMetadata(")
-                .Append("new[] { \"multipart/form-data\" }, typeof(global::Microsoft.AspNetCore.Http.IFormCollection), false))")
-                .Append(".WithMetadata(global::Ling.RemoteServices.AspNetCore.RemoteServiceAntiforgeryMetadata.Required)");
+            if (!hasExplicitAccepts)
+            {
+                source
+                    .Append(".WithMetadata(new global::Microsoft.AspNetCore.Http.Metadata.AcceptsMetadata(")
+                    .Append("new[] { \"multipart/form-data\" }, typeof(global::Microsoft.AspNetCore.Http.IFormCollection), false))");
+            }
+
+            source.Append(".WithMetadata(global::Ling.RemoteServices.AspNetCore.RemoteServiceAntiforgeryMetadata.Required)");
         }
     }
 
-    private static string GetOperationId(
+    internal static string GetOperationId(
         ServiceModel service,
         MethodModel method,
         HttpOperationModel operation)
     {
+        if (method.EndpointName is not null)
+        {
+            return method.EndpointName;
+        }
+
         var operationId = service.Symbol.Name + "_" + method.Symbol.Name;
         return method.Operations.Count == 1
             ? operationId

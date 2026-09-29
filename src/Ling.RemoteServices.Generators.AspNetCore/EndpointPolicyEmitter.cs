@@ -8,9 +8,10 @@ internal static class EndpointPolicyEmitter
         CodeBuilder source,
         ServiceModel service,
         MethodModel method,
+        HttpOperationModel operation,
         string operationVariable)
     {
-        var policies = method.EndpointPolicies;
+        var policies = operation.EndpointPolicies;
         if (!HasPolicies(policies))
         {
             return;
@@ -57,6 +58,14 @@ internal static class EndpointPolicyEmitter
         source
             .CloseBrace(");")
             .DecreaseIndentLevel();
+
+        if (policies.RequestTimeoutMilliseconds is { } timeoutMilliseconds)
+        {
+            source.Append(operationVariable)
+                .Append(".WithRequestTimeout(global::System.TimeSpan.FromMilliseconds(")
+                .Append(timeoutMilliseconds)
+                .AppendLine("));");
+        }
     }
 
     private static bool HasPolicies(EndpointPolicyModel policies)
@@ -68,6 +77,7 @@ internal static class EndpointPolicyEmitter
             || policies.OutputCacheEnabled
             || policies.RateLimitPolicyName is not null
             || policies.RequestTimeoutPolicyName is not null
+            || policies.RequestTimeoutMilliseconds is not null
             || policies.CustomPolicyNames.Count > 0;
     }
 

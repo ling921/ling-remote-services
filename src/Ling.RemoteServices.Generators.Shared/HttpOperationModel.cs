@@ -7,4 +7,6 @@ internal sealed record HttpOperationModel(
     List<ParameterModel> Parameters,
     int? SuccessStatus,
     string? ResponseContentType,
-    bool IsClientDefault);
+    bool IsClientDefault,
+    IReadOnlyList<EndpointMetadataModel> EndpointMetadata,
+    EndpointPolicyModel EndpointPolicies);
