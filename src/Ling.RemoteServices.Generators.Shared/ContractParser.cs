@@ -237,7 +237,8 @@ internal static class ContractParser
                     configurationSources.Cast<ISymbol>().Append(service).ToArray(),
                     declarations,
                     httpMethod,
-                    reportDiagnostic)
+                    reportDiagnostic,
+                    validateHttpMethodSelectors: index == 0)
             };
         }
 
@@ -301,12 +302,12 @@ internal static class ContractParser
             .Value.Value as string;
 
         if (verbAttribute.NamedArguments.Any(argument => argument.Key == "SuccessStatusCode")
-            && successStatus is < 100 or > 299)
+            && successStatus is < 200 or > 299)
         {
             ReportInvalid(
                 reportDiagnostic,
                 method,
-                $"Success status code on '{method.Name}' must be from 100 through 299.");
+                $"Success status code on '{method.Name}' must be from 200 through 299.");
             return null;
         }
 

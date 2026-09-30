@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Report invalid endpoint-policy HTTP method selectors instead of silently ignoring them, preventing invalid authorization declarations from being mistaken for active policy.
+- Restrict configured success response statuses to 200–299 so generated server responses agree with the client's success-status handling.
+
 ## 2.0.0-preview.2
 
 This replaces the withdrawn `2.0.0-preview.1` GitHub release, whose tag incorrectly pointed to the 1.0.0 source commit. No 2.0 package was published for that release.

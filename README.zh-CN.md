@@ -27,7 +27,6 @@
 - 与 ASP.NET Core 原生授权、CORS、输出缓存、限流、请求超时、防伪和 OpenAPI metadata 集成。
 - 继续复用现有的 `HttpClient` pipeline 和 endpoint convention，以配置认证、重试、日志、链路追踪及自定义策略。
 - 生成的端点提供 ASP.NET Core 原生 Filter、OpenAPI metadata、Form 限制、请求超时和路由短路约定。
-- 生成的端点提供 ASP.NET Core 原生 Filter、OpenAPI metadata、Form 限制、请求超时和路由短路约定。
 - 客户端序列化和服务端 RequestDelegate 支持裁剪及 Native AOT。
 - 支持 .NET 8、.NET 9 和 .NET 10。
 

@@ -16,10 +16,19 @@ internal static class EndpointPolicyParser
         IReadOnlyList<ISymbol> serviceDeclarations,
         IReadOnlyList<IMethodSymbol> methodDeclarations,
         int? httpMethod,
-        Action<Diagnostic>? reportDiagnostic)
+        Action<Diagnostic>? reportDiagnostic,
+        bool validateHttpMethodSelectors = true)
     {
-        var servicePolicies = ParseDeclared(serviceDeclarations, httpMethod, reportDiagnostic);
-        var methodPolicies = ParseDeclared(methodDeclarations, httpMethod, reportDiagnostic);
+        var servicePolicies = ParseDeclared(
+            serviceDeclarations,
+            httpMethod,
+            reportDiagnostic,
+            validateHttpMethodSelectors);
+        var methodPolicies = ParseDeclared(
+            methodDeclarations,
+            httpMethod,
+            reportDiagnostic,
+            validateHttpMethodSelectors);
 
         var authorizationPolicies = servicePolicies.AuthorizationPolicyNames
             .Concat(methodPolicies.AuthorizationPolicyNames)
@@ -60,7 +69,8 @@ internal static class EndpointPolicyParser
     private static EndpointPolicyModel ParseDeclared(
         IEnumerable<ISymbol> symbols,
         int? httpMethod,
-        Action<Diagnostic>? reportDiagnostic)
+        Action<Diagnostic>? reportDiagnostic,
+        bool validateHttpMethodSelectors)
     {
         var authorizationPolicies = new List<string?>();
         var authorizationRoleGroups = new List<string>();
@@ -78,10 +88,28 @@ internal static class EndpointPolicyParser
             foreach (var attribute in symbol.GetAttributes())
             {
                 var httpMethodSelector = attribute.NamedArguments.FirstOrDefault(argument => argument.Key == "HttpMethod");
-                if (httpMethodSelector.Key is not null
-                    && (httpMethod is null || httpMethodSelector.Value.Value is not int selectedMethod || selectedMethod != httpMethod))
+                if (httpMethodSelector.Key is not null)
                 {
-                    continue;
+                    if (httpMethodSelector.Value.Value is not int selectedMethod
+                        || selectedMethod is < 0 or > 4)
+                    {
+                        if (validateHttpMethodSelectors)
+                        {
+                            reportDiagnostic?.Invoke(Diagnostic.Create(
+                                ContractDiagnostics.Invalid,
+                                attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation()
+                                    ?? symbol.Locations.FirstOrDefault(),
+                                $"Endpoint policy attribute '{attribute.AttributeClass?.Name}' on "
+                                + $"'{symbol.Name}' has an invalid HTTP method selector."));
+                        }
+
+                        continue;
+                    }
+
+                    if (httpMethod is null || selectedMethod != httpMethod)
+                    {
+                        continue;
+                    }
                 }
 
                 var attributeName = attribute.AttributeClass?.ToDisplayString();
