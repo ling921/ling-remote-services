@@ -8,7 +8,7 @@ English | [简体中文](README.zh-CN.md)
 
 Stable packages are published to NuGet.org under the following package IDs.
 
-The first 2.0 preview is available as [`2.0.0-preview.2`](https://github.com/ling921/ling-remote-services/releases/tag/v2.0.0-preview.2). Install preview package versions with `--prerelease`.
+The 2.0.0 stable release is available on [GitHub Releases](https://github.com/ling921/ling-remote-services/releases/tag/v2.0.0) and NuGet.org.
 
 | Package | Purpose | Status |
 | --- | --- | --- |
