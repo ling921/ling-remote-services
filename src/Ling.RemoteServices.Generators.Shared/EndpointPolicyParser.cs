@@ -9,8 +9,26 @@ internal static class EndpointPolicyParser
         IMethodSymbol method,
         Action<Diagnostic>? reportDiagnostic)
     {
-        var servicePolicies = ParseDeclared(service, reportDiagnostic);
-        var methodPolicies = ParseDeclared(method, reportDiagnostic);
+        return ParseEffective([service], [method], httpMethod: null, reportDiagnostic);
+    }
+
+    public static EndpointPolicyModel ParseEffective(
+        IReadOnlyList<ISymbol> serviceDeclarations,
+        IReadOnlyList<IMethodSymbol> methodDeclarations,
+        int? httpMethod,
+        Action<Diagnostic>? reportDiagnostic,
+        bool validateHttpMethodSelectors = true)
+    {
+        var servicePolicies = ParseDeclared(
+            serviceDeclarations,
+            httpMethod,
+            reportDiagnostic,
+            validateHttpMethodSelectors);
+        var methodPolicies = ParseDeclared(
+            methodDeclarations,
+            httpMethod,
+            reportDiagnostic,
+            validateHttpMethodSelectors);
 
         var authorizationPolicies = servicePolicies.AuthorizationPolicyNames
             .Concat(methodPolicies.AuthorizationPolicyNames)
@@ -34,7 +52,14 @@ internal static class EndpointPolicyParser
                 ? methodPolicies.OutputCachePolicyName
                 : servicePolicies.OutputCachePolicyName,
             methodPolicies.RateLimitPolicyName ?? servicePolicies.RateLimitPolicyName,
-            methodPolicies.RequestTimeoutPolicyName ?? servicePolicies.RequestTimeoutPolicyName,
+            methodPolicies.RequestTimeoutPolicyName is not null
+                || methodPolicies.RequestTimeoutMilliseconds is not null
+                ? methodPolicies.RequestTimeoutPolicyName
+                : servicePolicies.RequestTimeoutPolicyName,
+            methodPolicies.RequestTimeoutPolicyName is not null
+                || methodPolicies.RequestTimeoutMilliseconds is not null
+                ? methodPolicies.RequestTimeoutMilliseconds
+                : servicePolicies.RequestTimeoutMilliseconds,
             servicePolicies.CustomPolicyNames
                 .Concat(methodPolicies.CustomPolicyNames)
                 .Distinct(StringComparer.Ordinal)
@@ -42,8 +67,10 @@ internal static class EndpointPolicyParser
     }
 
     private static EndpointPolicyModel ParseDeclared(
-        ISymbol symbol,
-        Action<Diagnostic>? reportDiagnostic)
+        IEnumerable<ISymbol> symbols,
+        int? httpMethod,
+        Action<Diagnostic>? reportDiagnostic,
+        bool validateHttpMethodSelectors)
     {
         var authorizationPolicies = new List<string?>();
         var authorizationRoleGroups = new List<string>();
@@ -53,63 +80,115 @@ internal static class EndpointPolicyParser
         string? outputCachePolicyName = null;
         string? rateLimitPolicyName = null;
         string? requestTimeoutPolicyName = null;
+        int? requestTimeoutMilliseconds = null;
         var customPolicyNames = new List<string>();
 
-        foreach (var attribute in symbol.GetAttributes())
+        foreach (var symbol in symbols)
         {
-            var attributeName = attribute.AttributeClass?.ToDisplayString();
-            switch (attributeName)
+            foreach (var attribute in symbol.GetAttributes())
             {
-                case ContractNames.AuthorizeAttribute:
-                    if (TryGetOptionalPolicyName(
-                            attribute,
-                            symbol,
-                            reportDiagnostic,
-                            out var authorizationPolicy))
+                var httpMethodSelector = attribute.NamedArguments.FirstOrDefault(argument => argument.Key == "HttpMethod");
+                if (httpMethodSelector.Key is not null)
+                {
+                    if (httpMethodSelector.Value.Value is not int selectedMethod
+                        || selectedMethod is < 0 or > 4)
                     {
-                        var roles = GetOptionalNamedString(attribute, "Roles");
-                        if (roles is { } roleGroup
-                            && !string.IsNullOrWhiteSpace(roleGroup))
+                        if (validateHttpMethodSelectors)
                         {
-                            authorizationRoleGroups.Add(roleGroup);
+                            reportDiagnostic?.Invoke(Diagnostic.Create(
+                                ContractDiagnostics.Invalid,
+                                attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation()
+                                    ?? symbol.Locations.FirstOrDefault(),
+                                $"Endpoint policy attribute '{attribute.AttributeClass?.Name}' on "
+                                + $"'{symbol.Name}' has an invalid HTTP method selector."));
                         }
 
-                        if (authorizationPolicy is not null
-                            || string.IsNullOrWhiteSpace(roles))
+                        continue;
+                    }
+
+                    if (httpMethod is null || selectedMethod != httpMethod)
+                    {
+                        continue;
+                    }
+                }
+
+                var attributeName = attribute.AttributeClass?.ToDisplayString();
+                switch (attributeName)
+                {
+                    case ContractNames.AuthorizeAttribute:
+                        if (TryGetOptionalPolicyName(
+                                attribute,
+                                symbol,
+                                reportDiagnostic,
+                                out var authorizationPolicy))
                         {
-                            authorizationPolicies.Add(authorizationPolicy);
+                            var roles = GetOptionalNamedString(attribute, "Roles");
+                            if (roles is { } roleGroup
+                                && !string.IsNullOrWhiteSpace(roleGroup))
+                            {
+                                authorizationRoleGroups.Add(roleGroup);
+                            }
+
+                            if (authorizationPolicy is not null
+                                || string.IsNullOrWhiteSpace(roles))
+                            {
+                                authorizationPolicies.Add(authorizationPolicy);
+                            }
                         }
-                    }
 
-                    break;
-                case ContractNames.AllowAnonymousAttribute:
-                    allowAnonymous = true;
-                    break;
-                case ContractNames.CorsAttribute:
-                    corsPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
-                    break;
-                case ContractNames.OutputCacheAttribute:
-                    if (TryGetOptionalPolicyName(attribute, symbol, reportDiagnostic, out var outputCachePolicy))
-                    {
-                        outputCacheEnabled = true;
-                        outputCachePolicyName = outputCachePolicy;
-                    }
+                        break;
+                    case ContractNames.AllowAnonymousAttribute:
+                        allowAnonymous = true;
+                        break;
+                    case ContractNames.CorsAttribute:
+                        corsPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
+                        break;
+                    case ContractNames.OutputCacheAttribute:
+                        if (TryGetOptionalPolicyName(attribute, symbol, reportDiagnostic, out var outputCachePolicy))
+                        {
+                            outputCacheEnabled = true;
+                            outputCachePolicyName = outputCachePolicy;
+                        }
 
-                    break;
-                case ContractNames.RateLimitAttribute:
-                    rateLimitPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
-                    break;
-                case ContractNames.RequestTimeoutAttribute:
-                    requestTimeoutPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
-                    break;
-                case ContractNames.EndpointPolicyAttribute:
-                    var customPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
-                    if (customPolicyName is not null)
-                    {
-                        customPolicyNames.Add(customPolicyName);
-                    }
+                        break;
+                    case ContractNames.RateLimitAttribute:
+                        rateLimitPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
+                        break;
+                    case ContractNames.RequestTimeoutAttribute:
+                        if (attribute.ConstructorArguments.FirstOrDefault().Value is int timeoutMilliseconds)
+                        {
+                            if (timeoutMilliseconds <= 0)
+                            {
+                                requestTimeoutMilliseconds = null;
+                                requestTimeoutPolicyName = null;
+                                reportDiagnostic?.Invoke(Diagnostic.Create(
+                                    ContractDiagnostics.Invalid,
+                                    attribute.ApplicationSyntaxReference?.GetSyntax().GetLocation()
+                                        ?? symbol.Locations.FirstOrDefault(),
+                                    $"Request timeout on '{symbol.Name}' must be greater than zero milliseconds."));
+                            }
+                            else
+                            {
+                                requestTimeoutMilliseconds = timeoutMilliseconds;
+                                requestTimeoutPolicyName = null;
+                            }
+                        }
+                        else
+                        {
+                            requestTimeoutPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
+                            requestTimeoutMilliseconds = null;
+                        }
 
-                    break;
+                        break;
+                    case ContractNames.EndpointPolicyAttribute:
+                        var customPolicyName = GetRequiredPolicyName(attribute, symbol, reportDiagnostic);
+                        if (customPolicyName is not null)
+                        {
+                            customPolicyNames.Add(customPolicyName);
+                        }
+
+                        break;
+                }
             }
         }
 
@@ -122,6 +201,7 @@ internal static class EndpointPolicyParser
             outputCachePolicyName,
             rateLimitPolicyName,
             requestTimeoutPolicyName,
+            requestTimeoutMilliseconds,
             customPolicyNames);
     }
 

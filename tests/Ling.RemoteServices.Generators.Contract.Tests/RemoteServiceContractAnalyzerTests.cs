@@ -52,6 +52,36 @@ public class RemoteServiceContractAnalyzerTests
         Assert.Contains("at least one", diagnostic.GetMessage());
     }
 
+    [Fact]
+    public async Task LRS003_reports_conflicting_http_operations_from_unrelated_base_interfaces()
+    {
+        const string source = """
+            using Ling.RemoteServices.Attributes;
+            using System.Threading.Tasks;
+
+            public interface IFirstBaseService
+            {
+                [Get("first")]
+                Task<string> FindAsync();
+            }
+
+            public interface ISecondBaseService
+            {
+                [Post("second")]
+                Task<string> FindAsync();
+            }
+
+            [RemoteService("/api/conflict")]
+            public interface IConflictingService : IFirstBaseService, ISecondBaseService
+            {
+            }
+            """;
+
+        var diagnostic = await GetSingleDiagnosticAsync(source, "LRS003");
+
+        Assert.Contains("conflicting HTTP operations", diagnostic.GetMessage());
+    }
+
     [Theory]
     [MemberData(nameof(InvalidContractSources))]
     public async Task LRS003_reports_unsupported_contracts(
@@ -124,6 +154,75 @@ public class RemoteServiceContractAnalyzerTests
         var diagnostic = await GetSingleDiagnosticAsync(source, "LRS007");
 
         Assert.Contains("GET /api/test/item", diagnostic.GetMessage());
+    }
+
+    [Fact]
+    public async Task LRS003_rejects_invalid_policy_http_method_selectors_once()
+    {
+        const string source = """
+            using Ling.RemoteServices;
+            using Ling.RemoteServices.Attributes;
+            using System.Threading.Tasks;
+
+            [RemoteService("/api/invalid-selector")]
+            public interface IInvalidSelectorService
+            {
+                [Get(IsClientDefault = true), Post]
+                [RemoteAuthorize("Admin", HttpMethod = (RemoteHttpMethod)99)]
+                Task<string> ExecuteAsync();
+            }
+            """;
+
+        var diagnostic = await GetSingleDiagnosticAsync(source, "LRS003");
+
+        Assert.Contains("invalid HTTP method selector", diagnostic.GetMessage());
+    }
+
+    [Theory]
+    [InlineData(100)]
+    [InlineData(199)]
+    [InlineData(300)]
+    [InlineData(599)]
+    public async Task LRS003_rejects_success_status_codes_outside_2xx(int statusCode)
+    {
+        var source = $$"""
+            using Ling.RemoteServices.Attributes;
+            using System.Threading.Tasks;
+
+            [RemoteService("/api/invalid-status")]
+            public interface IInvalidStatusService
+            {
+                [Get(SuccessStatusCode = {{statusCode}})]
+                Task<string> GetAsync();
+            }
+            """;
+
+        var diagnostic = await GetSingleDiagnosticAsync(source, "LRS003");
+
+        Assert.Contains("must be from 200 through 299", diagnostic.GetMessage());
+    }
+
+    [Theory]
+    [InlineData(200)]
+    [InlineData(299)]
+    public async Task LRS003_accepts_success_status_codes_in_2xx(int statusCode)
+    {
+        var source = $$"""
+            using Ling.RemoteServices.Attributes;
+            using System.Threading.Tasks;
+
+            [RemoteService("/api/valid-status")]
+            public interface IValidStatusService
+            {
+                [Get(SuccessStatusCode = {{statusCode}})]
+                Task<string> GetAsync();
+            }
+            """;
+
+        var diagnostics = await CSharpAnalyzerVerifier<RemoteServiceContractAnalyzer>
+            .GetDiagnosticsAsync(source);
+
+        Assert.DoesNotContain(diagnostics, item => item.Id == "LRS003");
     }
 
     public static TheoryData<string, string> InvalidContractSources => new()

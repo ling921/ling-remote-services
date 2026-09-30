@@ -7,6 +7,6 @@ namespace Ling.RemoteServices.Attributes;
     AttributeTargets.Interface | AttributeTargets.Method,
     AllowMultiple = false,
     Inherited = true)]
-public sealed class RemoteAllowAnonymousAttribute : Attribute
+public sealed class RemoteAllowAnonymousAttribute : RemoteEndpointMetadataAttribute
 {
 }

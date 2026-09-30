@@ -8,6 +8,8 @@
 
 稳定版包已使用以下包 ID 发布到 NuGet.org。
 
+首个 2.0 预览版 [`2.0.0-preview.2`](https://github.com/ling921/ling-remote-services/releases/tag/v2.0.0-preview.2) 已发布。安装时请使用 `--prerelease`。
+
 | 包 | 用途 | 状态 |
 | --- | --- | --- |
 | [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | 与传输无关的契约、特性、模型、异常、分析器和契约清单生成器。 | 稳定版 |
@@ -24,6 +26,7 @@
 - 一个契约方法可以声明多个 HTTP Method，并显式选择客户端默认 Method。
 - 与 ASP.NET Core 原生授权、CORS、输出缓存、限流、请求超时、防伪和 OpenAPI metadata 集成。
 - 继续复用现有的 `HttpClient` pipeline 和 endpoint convention，以配置认证、重试、日志、链路追踪及自定义策略。
+- 生成的端点提供 ASP.NET Core 原生 Filter、OpenAPI metadata、Form 限制、请求超时和路由短路约定。
 - 客户端序列化和服务端 RequestDelegate 支持裁剪及 Native AOT。
 - 支持 .NET 8、.NET 9 和 .NET 10。
 

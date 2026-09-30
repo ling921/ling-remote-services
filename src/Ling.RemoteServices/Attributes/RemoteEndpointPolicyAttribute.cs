@@ -7,7 +7,7 @@ namespace Ling.RemoteServices.Attributes;
     AttributeTargets.Interface | AttributeTargets.Method,
     AllowMultiple = true,
     Inherited = true)]
-public sealed class RemoteEndpointPolicyAttribute : Attribute
+public sealed class RemoteEndpointPolicyAttribute : RemoteEndpointMetadataAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteEndpointPolicyAttribute"/> class.

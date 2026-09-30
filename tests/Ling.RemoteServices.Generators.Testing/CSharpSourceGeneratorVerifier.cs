@@ -22,6 +22,9 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
         params MetadataReference[] additionalReferences)
     {
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+#if NET10_0_OR_GREATER
+        parseOptions = parseOptions.WithPreprocessorSymbols("NET10_0_OR_GREATER");
+#endif
         var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
         var references = GetFrameworkReferences()
             .Append(MetadataReference.CreateFromFile(typeof(RemoteServiceAttribute).Assembly.Location))

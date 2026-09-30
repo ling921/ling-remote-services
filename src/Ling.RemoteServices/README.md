@@ -84,6 +84,26 @@ public interface IWeatherService
 Policy definitions remain in the ASP.NET Core host. Roles in one comma-delimited list are
 alternatives; role groups declared by separate attributes must all be satisfied.
 
+## Endpoint metadata
+
+Services and methods can declare ASP.NET Core Minimal API endpoint metadata. Attributes that support HTTP method selection can set `HttpMethod` to target one operation; omitting it applies the metadata to every operation declared by the contract:
+
+```csharp
+[RemoteService("/api/catalog")]
+[RemoteTags("catalog")]
+public interface ICatalogService
+{
+    [Get(IsClientDefault = true), Post("search")]
+    [RemoteSummary("Lists catalog entries", HttpMethod = RemoteHttpMethod.Get)]
+    [RemoteProducesProblem(400, HttpMethod = RemoteHttpMethod.Post)]
+    Task<Item[]> FindAsync([Query] string? query);
+}
+```
+
+Version 2.0 also provides `RemoteProduces<T>`, `RemoteAccepts<T>`, `RemoteProducesProblem`, `RemoteProducesValidationProblem`, `RemoteDescription`, `RemoteExcludeFromDescription`, `RemoteHost`, `RemoteOrder`, `RemoteDisplayName`, `RemoteEndpointName`, `RemoteDisableAntiforgery`, `RemoteFormOptions`, and `RemoteFormMappingOptions`. The .NET 10-only `RemoteDisableValidation` and `RemoteAllowCookieRedirect` attributes produce a generator warning and skip that configuration when the host targets an earlier ASP.NET Core version.
+
+Service interfaces can inherit shared base contracts. The generator merges methods, policies, OpenAPI metadata, and parameter bindings through the interface hierarchy; a redeclared method on the derived interface can replace its HTTP operation declarations. Conflicting HTTP operations declared for the same method by unrelated base interfaces produce a contract diagnostic and require an explicit redeclaration on the service interface.
+
 ## Analyzer diagnostics
 
 The package reports invalid contracts while editing and building, including synchronous methods, missing HTTP methods, unsupported routes and signatures, ambiguous client defaults, and duplicate HTTP operations. Invalid services do not publish a contract manifest for downstream generators.

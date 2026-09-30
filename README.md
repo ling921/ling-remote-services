@@ -8,6 +8,8 @@ English | [简体中文](README.zh-CN.md)
 
 Stable packages are published to NuGet.org under the following package IDs.
 
+The first 2.0 preview is available as [`2.0.0-preview.2`](https://github.com/ling921/ling-remote-services/releases/tag/v2.0.0-preview.2). Install preview package versions with `--prerelease`.
+
 | Package | Purpose | Status |
 | --- | --- | --- |
 | [`Ling.RemoteServices.Abstractions`](src/Ling.RemoteServices/README.md) [![NuGet](https://img.shields.io/nuget/v/Ling.RemoteServices.Abstractions.svg)](https://www.nuget.org/packages/Ling.RemoteServices.Abstractions/) | Transport-independent contracts, attributes, models, exceptions, analyzer, and contract manifest generator. | Stable |
@@ -24,6 +26,7 @@ Stable packages are published to NuGet.org under the following package IDs.
 - Multiple HTTP methods per contract method with an explicit client default.
 - Native ASP.NET Core authorization, CORS, output cache, rate limit, request timeout, antiforgery, and OpenAPI metadata integration.
 - Existing `HttpClient` pipelines and endpoint conventions remain available for authentication, retry, logging, tracing, and custom policies.
+- Generated endpoints expose native ASP.NET Core conventions for filters, OpenAPI metadata, form limits, request timeouts, and routing short-circuiting.
 - Trimming and Native AOT compatible client serialization and server request delegates.
 - .NET 8, .NET 9, and .NET 10 support.
 

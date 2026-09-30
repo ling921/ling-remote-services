@@ -163,39 +163,3 @@ public static class RemoteServiceServerRuntime
         Justification = "This fallback is reachable only when JSON reflection is enabled.")]
     private static DefaultJsonTypeInfoResolver CreateReflectionJsonTypeInfoResolver() => new();
 }
-
-/// <summary>
-/// Applies endpoint conventions to every endpoint generated for a remote service collection.
-/// </summary>
-[EditorBrowsable(EditorBrowsableState.Never)]
-public sealed class CompositeEndpointConventionBuilder : IEndpointConventionBuilder
-{
-    private readonly IReadOnlyList<IEndpointConventionBuilder> builders;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CompositeEndpointConventionBuilder"/> class.
-    /// </summary>
-    /// <param name="builders">The endpoint convention builders to aggregate.</param>
-    public CompositeEndpointConventionBuilder(IEnumerable<IEndpointConventionBuilder> builders)
-    {
-        this.builders = builders.ToArray();
-    }
-
-    /// <inheritdoc />
-    public void Add(Action<EndpointBuilder> convention)
-    {
-        foreach (var builder in builders)
-        {
-            builder.Add(convention);
-        }
-    }
-
-    /// <inheritdoc />
-    public void Finally(Action<EndpointBuilder> finalConvention)
-    {
-        foreach (var builder in builders)
-        {
-            builder.Finally(finalConvention);
-        }
-    }
-}

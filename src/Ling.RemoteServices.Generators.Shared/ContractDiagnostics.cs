@@ -59,4 +59,12 @@ internal static class ContractDiagnostics
         "Ling.RemoteServices",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor UnsupportedFrameworkFeature = new(
+        "LRS008",
+        "Endpoint metadata requires a newer ASP.NET Core version",
+        "{0}",
+        "Ling.RemoteServices",
+        DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
 }

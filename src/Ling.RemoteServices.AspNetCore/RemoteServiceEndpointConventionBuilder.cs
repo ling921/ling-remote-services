@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
@@ -14,10 +13,10 @@ namespace Ling.RemoteServices.AspNetCore;
 /// </remarks>
 /// <param name="group">The route group that contains the service endpoints.</param>
 /// <param name="operations">The endpoint builders keyed by contract method name.</param>
-[EditorBrowsable(EditorBrowsableState.Never)]
 public sealed class RemoteServiceEndpointConventionBuilder<TService>(
     RouteGroupBuilder group,
-    IReadOnlyDictionary<string, RemoteServiceMethodConventionBuilder> operations) : IEndpointConventionBuilder
+    IReadOnlyDictionary<string, RemoteServiceMethodConventionBuilder> operations)
+    : RemoteServiceConventionBuilder<RemoteServiceEndpointConventionBuilder<TService>>
     where TService : class
 {
     private readonly IReadOnlyDictionary<string, RemoteServiceMethodConventionBuilder> _operations = operations ?? throw new ArgumentNullException(nameof(operations));
@@ -55,20 +54,26 @@ public sealed class RemoteServiceEndpointConventionBuilder<TService>(
     /// <param name="methodName">The contract method name, normally supplied with <see langword="nameof"/>.</param>
     /// <param name="httpMethod">The HTTP method to retrieve.</param>
     /// <returns>The endpoint convention builder for the requested HTTP operation.</returns>
-    public IEndpointConventionBuilder Operation(string methodName, RemoteHttpMethod httpMethod)
+    public RemoteServiceOperationConventionBuilder Operation(string methodName, RemoteHttpMethod httpMethod)
     {
         return Operation(methodName).HttpMethod(httpMethod);
     }
 
     /// <inheritdoc />
-    public void Add(Action<EndpointBuilder> convention)
+    public override void Add(Action<EndpointBuilder> convention)
     {
         ((IEndpointConventionBuilder)Group).Add(convention);
     }
 
     /// <inheritdoc />
-    public void Finally(Action<EndpointBuilder> finalConvention)
+    public override void Finally(Action<EndpointBuilder> finalConvention)
     {
         ((IEndpointConventionBuilder)Group).Finally(finalConvention);
+    }
+
+    /// <inheritdoc />
+    protected override IEnumerable<IEndpointConventionBuilder> GetEndpointBuilders()
+    {
+        yield return Group;
     }
 }

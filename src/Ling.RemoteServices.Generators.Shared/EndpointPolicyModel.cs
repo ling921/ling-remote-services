@@ -9,6 +9,7 @@ internal sealed record EndpointPolicyModel(
     string? OutputCachePolicyName,
     string? RateLimitPolicyName,
     string? RequestTimeoutPolicyName,
+    int? RequestTimeoutMilliseconds,
     IReadOnlyList<string> CustomPolicyNames)
 {
     public static EndpointPolicyModel Empty { get; } = new(
@@ -17,6 +18,7 @@ internal sealed record EndpointPolicyModel(
         false,
         null,
         false,
+        null,
         null,
         null,
         null,

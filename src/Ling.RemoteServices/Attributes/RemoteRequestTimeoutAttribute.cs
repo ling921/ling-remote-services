@@ -7,7 +7,7 @@ namespace Ling.RemoteServices.Attributes;
     AttributeTargets.Interface | AttributeTargets.Method,
     AllowMultiple = false,
     Inherited = true)]
-public sealed class RemoteRequestTimeoutAttribute : Attribute
+public sealed class RemoteRequestTimeoutAttribute : RemoteEndpointMetadataAttribute
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RemoteRequestTimeoutAttribute"/> class.
@@ -19,8 +19,22 @@ public sealed class RemoteRequestTimeoutAttribute : Attribute
         PolicyName = policyName;
     }
 
+    /// <summary>Initializes a request timeout with a positive duration in milliseconds.</summary>
+    public RemoteRequestTimeoutAttribute(int timeoutMilliseconds)
+    {
+        if (timeoutMilliseconds <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeoutMilliseconds));
+        }
+
+        TimeoutMilliseconds = timeoutMilliseconds;
+    }
+
     /// <summary>
     /// Gets the request timeout policy name.
     /// </summary>
-    public string PolicyName { get; }
+    public string? PolicyName { get; }
+
+    /// <summary>Gets the timeout duration when configured directly.</summary>
+    public int TimeoutMilliseconds { get; }
 }

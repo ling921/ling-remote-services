@@ -84,6 +84,26 @@ public interface IWeatherService
 具体策略仍由 ASP.NET Core 宿主定义。同一逗号分隔列表中的角色为“或”关系，
 不同特性声明的角色组之间为“且”关系。
 
+## 端点 metadata
+
+服务和方法可以声明 ASP.NET Core Minimal API endpoint metadata。支持选择 HTTP Method 的特性可用 `HttpMethod` 只影响一个端点；未指定时应用于该接口的全部端点：
+
+```csharp
+[RemoteService("/api/catalog")]
+[RemoteTags("catalog")]
+public interface ICatalogService
+{
+    [Get(IsClientDefault = true), Post("search")]
+    [RemoteSummary("Lists catalog entries", HttpMethod = RemoteHttpMethod.Get)]
+    [RemoteProducesProblem(400, HttpMethod = RemoteHttpMethod.Post)]
+    Task<Item[]> FindAsync([Query] string? query);
+}
+```
+
+2.0 还提供 `RemoteProduces<T>`、`RemoteAccepts<T>`、`RemoteProducesProblem`、`RemoteProducesValidationProblem`、`RemoteDescription`、`RemoteExcludeFromDescription`、`RemoteHost`、`RemoteOrder`、`RemoteDisplayName`、`RemoteEndpointName`、`RemoteDisableAntiforgery`、`RemoteFormOptions` 和 `RemoteFormMappingOptions`。ASP.NET Core 10 专属的 `RemoteDisableValidation` 与 `RemoteAllowCookieRedirect` 在较早宿主上会产生生成器警告并跳过该项配置。
+
+服务接口可以继承共享的基础契约。生成器会沿接口继承层次合并方法、策略、OpenAPI metadata 和参数绑定；派生接口重声明的方法可以覆盖 HTTP 操作声明。互不继承的基础接口若对同名方法声明了冲突的 HTTP 操作，会报告契约诊断，要求在服务接口中明确重声明。
+
 ## 分析器诊断
 
 该包会在编辑和构建阶段报告无效契约，包括同步方法、缺少 HTTP Method、不受支持的路由或方法签名、存在歧义的客户端默认操作以及重复 HTTP 操作。无效服务不会向下游生成器发布契约清单。

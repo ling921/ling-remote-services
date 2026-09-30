@@ -98,6 +98,24 @@ app.MapRemoteServices(services =>
 
 Use `Operation(methodName, RemoteHttpMethod)` to target one HTTP operation when a contract method exposes multiple methods.
 
+The registry and the builders for each service, method, and HTTP operation support standard endpoint filters:
+
+```csharp
+app.MapRemoteServices(services =>
+{
+    services.AddEndpointFilter<EndpointValidationFilter>();
+    services.For<IAdminApiService>()
+        .AddEndpointFilter<AdminAuditFilter>();
+    services.For<IAdminApiService>()
+        .Operation(nameof(IAdminApiService.DeleteAsync), RemoteHttpMethod.Delete)
+        .AddEndpointFilter<DeleteConfirmationFilter>();
+});
+```
+
+Registry configuration applies to every mapped service, while service, method, and operation builders narrow the scope. The builders also expose typed `Produces`, `ProducesProblem`, `ProducesValidationProblem`, `Accepts`, request-timeout, and short-circuit methods. They implement `IEndpointConventionBuilder`, so other ASP.NET Core convention extensions that accept this interface can be used directly. The native service `RouteGroupBuilder` remains available through `.Group`. The `RemoteShortCircuit` attribute can set routing short-circuiting on all operations or one selected HTTP method.
+
+Short-circuiting executes the endpoint from routing and skips later middleware. ASP.NET Core does not allow it on endpoints that carry authorization, CORS, or required antiforgery metadata, so keep it for endpoints that do not depend on those middleware.
+
 ## OpenAPI
 
 Generated endpoints attach native Minimal API metadata such as operation names, summaries, accepted content types, produced responses, and binding sources. Configure the OpenAPI stack supplied by the target ASP.NET Core version:
