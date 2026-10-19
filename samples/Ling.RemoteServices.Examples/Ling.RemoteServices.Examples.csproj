@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Ling.RemoteServices.Examples.Client\Ling.RemoteServices.Examples.Client.csproj" />
     <ProjectReference Include="..\Ling.RemoteServices.Examples.Shared\Ling.RemoteServices.Examples.Shared.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.17.1" />
     <ProjectReference Include="..\..\src\Ling.RemoteServices.AspNetCore\Ling.RemoteServices.AspNetCore.csproj" />
