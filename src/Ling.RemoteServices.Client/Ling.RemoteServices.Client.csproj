@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
     <PackageId>Ling.RemoteServices.Client</PackageId>
     <Title>Ling.RemoteServices Client</Title>
     <Description>Type-safe generated HttpClient proxies, URL formatting, serialization, streaming, and remote error handling for Ling.RemoteServices contracts.</Description>

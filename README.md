@@ -8,7 +8,7 @@ English | [简体中文](README.zh-CN.md)
 
 Stable packages are published to NuGet.org under the following package IDs.
 
-The 2.0.0 stable release is available on [GitHub Releases](https://github.com/ling921/ling-remote-services/releases/tag/v2.0.0) and NuGet.org.
+The 2.1.0 stable release is available on [GitHub Releases](https://github.com/ling921/ling-remote-services/releases/tag/v2.1.0) and NuGet.org.
 
 | Package | Purpose | Status |
 | --- | --- | --- |
