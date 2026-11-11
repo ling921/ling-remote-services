@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;net10.0;net11.0</TargetFrameworks>
     <PackageId>Ling.RemoteServices.AspNetCore</PackageId>
     <Title>Ling.RemoteServices ASP.NET Core</Title>
     <Description>Generated ASP.NET Core Minimal API endpoints, endpoint conventions, policies, OpenAPI metadata, and server error handling for Ling.RemoteServices contracts.</Description>
