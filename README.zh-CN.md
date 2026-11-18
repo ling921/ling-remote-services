@@ -130,4 +130,4 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 ## 协议
 
-- [MIT License](LICENSE)
+[MIT](LICENSE)
