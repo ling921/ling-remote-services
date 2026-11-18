@@ -130,4 +130,4 @@ Contributions are welcome. Please open an issue or pull request and include test
 
 ## License
 
-- [MIT License](LICENSE)
+[MIT](LICENSE)
